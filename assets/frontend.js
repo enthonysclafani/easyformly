@@ -6,7 +6,7 @@
 	const trim = ( value ) => value.replace( /^[ \t\r\n\0\v]+|[ \t\r\n\0\v]+$/g, '' );
 	const numeric = ( value ) => /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test( trim( value ) ) && Number.isFinite( Number( value ) );
 	// Cached markup from the previous version still has native fields without this attribute.
-	const primaryControl = ( wrapper ) => wrapper.querySelector( '[data-easycontact-control]' ) || wrapper.querySelector( 'input, select, textarea' );
+	const primaryControl = ( wrapper ) => wrapper.querySelector( '[data-easyformly-control]' ) || wrapper.querySelector( 'input, select, textarea' );
 
 	function matches( actual, operator, expected ) {
 		switch ( operator ) {
@@ -51,7 +51,7 @@
 
 	function mountCaptcha( form ) {
 		const state = states.get( form );
-		const widget = form.querySelector( '[data-easycontact-captcha]' );
+		const widget = form.querySelector( '[data-easyformly-captcha]' );
 		if ( ! widget || ! window.turnstile || state.widget !== undefined ) {
 			return;
 		}
@@ -72,11 +72,11 @@
 				},
 			} );
 		} catch {
-			form.querySelector( '.easycontact-result' ).textContent = state.config.messages.captchaUnavailable;
+			form.querySelector( '.easyformly-result' ).textContent = state.config.messages.captchaUnavailable;
 		}
 	}
 
-	window.easycontactTurnstileReady = () => document.querySelectorAll( '.easycontact-form[data-easycontact]' ).forEach( ( form ) => {
+	window.easyformlyTurnstileReady = () => document.querySelectorAll( '.easyformly-form[data-easyformly]' ).forEach( ( form ) => {
 		if ( states.has( form ) ) {
 			mountCaptcha( form );
 		}
@@ -108,15 +108,15 @@
 		form.elements.namedItem( 'ticket' ).value = data.ticket;
 		form.elements.namedItem( 'clock' ).value = data.clock;
 		state.clockReady = true;
-		const trap = form.querySelector( '[data-easycontact-trap]' );
+		const trap = form.querySelector( '[data-easyformly-trap]' );
 		trap.name = `honeypot[${ data.honeypot }]`;
-		trap.dataset.easycontactTrap = data.honeypot;
+		trap.dataset.easyformlyTrap = data.honeypot;
 		// Use the server's lifetime and local elapsed time; do not depend on the visitor's clock matching the server.
 		states.get( form ).refreshAt = Date.now() + ( Math.max( 0, data.expires - Number( data.ticket.split( '.' )[ 0 ] ) - 60 ) * 1000 );
 	}
 
 	function clearErrors( form ) {
-		form.querySelectorAll( '.easycontact-error' ).forEach( ( element ) => {
+		form.querySelectorAll( '.easyformly-error' ).forEach( ( element ) => {
 			element.textContent = '';
 		} );
 		form.querySelectorAll( '[aria-invalid="true"]' ).forEach( ( element ) => element.removeAttribute( 'aria-invalid' ) );
@@ -130,13 +130,13 @@
 				return;
 			}
 			const control = primaryControl( wrapper );
-			wrapper.querySelector( '.easycontact-error' ).textContent = String( message );
+			wrapper.querySelector( '.easyformly-error' ).textContent = String( message );
 			control.setAttribute( 'aria-invalid', 'true' );
 			if ( ! wrapper.hidden && ! first ) {
 				first = control;
 			}
 		} );
-		return first || form.querySelector( '.easycontact-result' );
+		return first || form.querySelector( '.easyformly-result' );
 	}
 
 	function resetCaptcha( form, state ) {
@@ -147,8 +147,8 @@
 	}
 
 	function mountPhone( field, locale ) {
-		const select = field.wrapper.querySelector( '[data-easycontact-country]' );
-		const search = field.wrapper.querySelector( '[data-easycontact-country-search]' );
+		const select = field.wrapper.querySelector( '[data-easyformly-country]' );
+		const search = field.wrapper.querySelector( '[data-easyformly-country-search]' );
 		if ( ! select || ! search ) {
 			return;
 		}
@@ -215,7 +215,7 @@
 		}
 		let config;
 		try {
-			config = JSON.parse( form.dataset.easycontact );
+			config = JSON.parse( form.dataset.easyformly );
 		} catch {
 			return;
 		}
@@ -241,9 +241,9 @@
 			if ( state.pending === null && ! form.reportValidity() ) {
 				return;
 			}
-			const result = form.querySelector( '.easycontact-result' );
+			const result = form.querySelector( '.easyformly-result' );
 
-			if ( state.pending === null && form.querySelector( '[data-easycontact-captcha]' ) && ! form.elements.namedItem( 'captcha' ).value ) {
+			if ( state.pending === null && form.querySelector( '[data-easyformly-captcha]' ) && ! form.elements.namedItem( 'captcha' ).value ) {
 				result.textContent = config.messages.captcha;
 				result.focus();
 				return;
@@ -260,7 +260,7 @@
 						if ( control.type === 'checkbox' ) {
 							fields[ wrapper.dataset.field ] = control.checked ? '1' : '';
 						}
-						const country = wrapper.querySelector( '[data-easycontact-country]' );
+						const country = wrapper.querySelector( '[data-easyformly-country]' );
 						if ( country ) {
 							countries[ wrapper.dataset.field ] = country.value;
 						}
@@ -281,10 +281,10 @@
 					}
 				}
 				state.pending = state.pending || { fields, countries };
-				const trap = form.querySelector( '[data-easycontact-trap]' );
+				const trap = form.querySelector( '[data-easyformly-trap]' );
 				const { response, data } = await request( form.dataset.submitUrl, {
 					method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-					body: JSON.stringify( { fields: state.pending.fields, countries: state.pending.countries, nonce: form.elements.namedItem( 'nonce' ).value, ticket: form.elements.namedItem( 'ticket' ).value, clock: form.elements.namedItem( 'clock' ).value, honeypot: { [ trap.dataset.easycontactTrap ]: trap.value }, captcha: form.elements.namedItem( 'captcha' )?.value || '' } ),
+					body: JSON.stringify( { fields: state.pending.fields, countries: state.pending.countries, nonce: form.elements.namedItem( 'nonce' ).value, ticket: form.elements.namedItem( 'ticket' ).value, clock: form.elements.namedItem( 'clock' ).value, honeypot: { [ trap.dataset.easyformlyTrap ]: trap.value }, captcha: form.elements.namedItem( 'captcha' )?.value || '' } ),
 				}, 55000 );
 				if ( response.ok && data.success ) {
 					state.pending = null;
@@ -332,7 +332,7 @@
 	}
 
 	function boot() {
-		document.querySelectorAll( '.easycontact-form[data-easycontact]' ).forEach( initialize );
+		document.querySelectorAll( '.easyformly-form[data-easyformly]' ).forEach( initialize );
 	}
 	if ( document.readyState === 'loading' ) {
 		document.addEventListener( 'DOMContentLoaded', boot );

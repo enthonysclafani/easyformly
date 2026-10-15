@@ -20,7 +20,7 @@ Documenti di riferimento (tutti in questo branch):
 ## Branch e ambienti
 
 - `Refactory` è il branch del lavoro sugli standard. Ogni sessione lavora su un branch proprio e apre una pull request
-  verso `Refactory`, mai verso `main`, che è la versione in produzione (1.0.0). La CI gira su ogni pull request.
+  verso `Refactory`, mai verso `main`, che è la versione 1.0.0 (mai andata in produzione). La CI gira su ogni pull request.
 - Il merge di `Refactory` in `main` e ogni rilascio li conferma Enthony in modo esplicito (Fase 6.4 del piano).
 - **Cloud (Claude Code)**: all'avvio, `tools/cloud-setup.sh` (hook `SessionStart` in `.claude/settings.json`) installa
   dipendenze Composer, MariaDB e la suite di test di WordPress in `/tmp/wordpress-develop`. Se all'avvio vedi un
@@ -56,13 +56,13 @@ blocca la CI. Ogni file ammesso in un'allowlist ha un commento con il motivo o c
    (lock atomici e pulizia dei lock scaduti, D6; con una cache a oggetti persistente i contatori non usano lock) e
    `uninstall.php` (ricerca per prefisso dei nomi dinamici, una volta sola). Nessun file nuovo nell'allowlist senza approvazione.
 3. **Niente cron, con una sola eccezione** (D1). Retention e pulizie si fanno a lotti, pigre, su `admin_init` e dopo
-   un invio, con il cursore in `easycontact_maintenance` (`src/Submissions/Maintenance.php`). L'unico evento ammesso è
-   `easycontact_retry_delivery` (singolo) per i nuovi tentativi di consegna, pianificato solo da
+   un invio, con il cursore in `easyformly_maintenance` (`src/Submissions/Maintenance.php`). L'unico evento ammesso è
+   `easyformly_retry_delivery` (singolo) per i nuovi tentativi di consegna, pianificato solo da
    `src/Submissions/Submission.php`; `src/Plugin.php` toglie soltanto gli eventi (A). Nessun evento nuovo.
 4. **Asset nel frontend solo al rendering di un modulo** (A per i file, test per il comportamento) (D2).
    `wp_enqueue_*` solo in `src/Forms/Renderer.php` (al rendering) e `src/Admin/Admin.php` (schermate del plugin).
    Nessun JS o CSS inline (A per `style="…"`). Solo due fogli di stile, `assets/admin.css` e `assets/frontend.css`,
-   con ogni selettore sotto una classe o un ID `easycontact` (A). Una pagina senza modulo non carica niente del plugin: `tests/QueriesTest.php`.
+   con ogni selettore sotto una classe o un ID `easyformly` (A). Una pagina senza modulo non carica niente del plugin: `tests/QueriesTest.php`.
 5. **HTTP solo nei file in allowlist** (A), con le API di WordPress (A: niente cURL, `fopen`/`file_get_contents` su
    URL, socket) (D3). Mai durante il rendering di una pagina, solo nella richiesta di invio e in admin; timeout ≤ 15 s; `WP_Error` e codici HTTP
    sempre gestiti; ogni servizio elencato in "External services" di `readme.txt`. Lo verifica `tests/HttpTest.php`.
@@ -78,15 +78,15 @@ blocca la CI. Ogni file ammesso in un'allowlist ha un commento con il motivo o c
 
 | Bisogno | API da usare | Da non usare |
 |---|---|---|
-| Moduli e invii | post type non pubblici `easycontact_form` / `easycontact_entry` + `WP_Query` | `$wpdb` diretto, tabelle |
-| Categorie anti-spam | tassonomia nascosta `easycontact_safety` | meta "status" fatti a mano |
+| Moduli e invii | post type non pubblici `easyformly_form` / `easyformly_entry` + `WP_Query` | `$wpdb` diretto, tabelle |
+| Categorie anti-spam | tassonomia nascosta `easyformly_safety` | meta "status" fatti a mano |
 | Impostazioni | `register_setting()` con `sanitize_callback` e schema (`Settings::schema()`), senza REST per i segreti | option non registrate nuove |
 | Endpoint | `register_rest_route()` con `permission_callback` e `args`; `admin-post.php` con nonce per i form classici | `admin-ajax.php` |
 | HTTP verso terzi | `wp_safe_remote_*()` per URL dell'utente (webhook Slack), `wp_remote_*()` per host fissi | cURL, `file_get_contents()` |
 | Email | `wp_mail()` | invio SMTP proprio |
 | Cache | transient con scadenza, `wp_cache_*()` | file, variabili globali |
 | Privacy | `wp_privacy_personal_data_exporters` / `_erasers`, testo suggerito per la privacy policy | export propri |
-| Traduzioni | `__()`, `_n()`, `esc_html__()` con text domain `easycontact` e commento `translators:` | stringhe fisse |
+| Traduzioni | `__()`, `_n()`, `esc_html__()` con text domain `easyformly` e commento `translators:` | stringhe fisse |
 
 ## Sicurezza
 
@@ -118,9 +118,9 @@ pubblico): la PR di correzione descrive il rinforzo, non la ricetta d'attacco.
 
 - **Percorso caldo**: nessuna query in più rispetto a WordPress senza plugin nelle pagine senza modulo, e nessuna
   query in `init` una volta fatto il setup. `tests/QueriesTest.php` lo verifica: qualsiasi query in più lo fa fallire.
-- Il setup (impostazioni mancanti, categorie, ripresa dei tentativi) gira solo quando cambia `easycontact_version`,
+- Il setup (impostazioni mancanti, categorie, ripresa dei tentativi) gira solo quando cambia `easyformly_version`,
   che è autoload.
-- **Autoload**: solo dati piccoli e letti a ogni richiesta (oggi solo `easycontact_version`). Tutto il resto con
+- **Autoload**: solo dati piccoli e letti a ogni richiesta (oggi solo `easyformly_version`). Tutto il resto con
   autoload `false`; la lista dei domini usa e getta (fino a 8 MB) mai in autoload.
 - **Caricamento pigro**: il codice admin si carica solo in admin; gli asset admin solo sulle schermate del plugin.
 - **Lavoro lungo a lotti**: retention, pulizie e ripresa dei tentativi lavorano a lotti con un cursore.
@@ -142,11 +142,9 @@ pubblico): la PR di correzione descrive il rinforzo, non la ricetta d'attacco.
   tra classi: l'unica proprietà statica è la copia in memoria della lista dei domini usa e getta, per richiesta.
 - **Callback degli hook**: WordPress passa spesso stringhe dove ti aspetti interi. Nei callback converti
   esplicitamente; i tipi rigidi vanno nei metodi interni.
-- Nome: il plugin si chiama EasyFormly dalla rinomina del 15 ottobre 2026 (D10). Namespace `EasyFormly`, costanti
-  `EASYFORMLY_`, text domain `easyformly`. I nomi che WordPress salva o che escono dal PHP restano `easycontact`:
-  option e transient `easycontact_`, meta `_easycontact_`, post type e tassonomie `easycontact_`, hook, azioni,
-  route REST, classi CSS e oggetti JS `easycontact`. Nessuna rinomina dei nomi esistenti (D8); i nomi nuovi seguono
-  lo stesso prefisso `easycontact` per restare coerenti con i dati.
+- Prefissi (D10): namespace `EasyFormly`, costanti `EASYFORMLY_`, text domain `easyformly`; option e transient
+  `easyformly_`, meta `_easyformly_`, post type e tassonomie `easyformly_`, hook, azioni, route REST, classi CSS e
+  oggetti JS `easyformly`.
 - Ogni hook pubblico (`apply_filters`/`do_action`) è una promessa di compatibilità: aggiungerne uno si chiede.
 - Codice, commenti e stringhe sorgente in inglese (D9), brevi e con le parole del core. La traduzione italiana è in
   `languages/easyformly-it_IT.po` e `.mo`: ogni stringa nuova o cambiata si aggiunge lì, poi si rigenerano `.pot` e

@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * Anti-spam categories of archived entries and the human review that overrides them.
  */
 final class Review {
-	public const TAXONOMY = 'easycontact_safety';
+	public const TAXONOMY = 'easyformly_safety';
 
 	/**
 	 * Category labels, keyed by term slug.
@@ -61,7 +61,7 @@ final class Review {
 	 * @return bool Whether every category exists.
 	 */
 	public static function create_terms(): bool {
-		if ( '1' === get_option( 'easycontact_review_terms_version' ) ) {
+		if ( '1' === get_option( 'easyformly_review_terms_version' ) ) {
 			return true;
 		}
 		$complete = true;
@@ -73,7 +73,7 @@ final class Review {
 			$complete = $complete && ! is_wp_error( $term );
 		}
 		if ( $complete ) {
-			update_option( 'easycontact_review_terms_version', '1', false );
+			update_option( 'easyformly_review_terms_version', '1', false );
 		}
 		return $complete;
 	}
@@ -94,7 +94,7 @@ final class Review {
 	 * @param int $id Entry ID.
 	 */
 	public static function held( int $id ): bool {
-		$value = get_post_meta( $id, '_easycontact_held', true );
+		$value = get_post_meta( $id, '_easyformly_held', true );
 		return '' !== $value && '0' !== $value;
 	}
 
@@ -104,12 +104,12 @@ final class Review {
 	 * @param int $id Entry ID.
 	 */
 	public static function can_deliver( int $id ): bool {
-		if ( self::held( $id ) || get_post_meta( $id, '_easycontact_initializing', true ) ) {
+		if ( self::held( $id ) || get_post_meta( $id, '_easyformly_initializing', true ) ) {
 			return false;
 		}
 		$category = self::category( $id );
 		// Existing entries have no assessment. Preserve their established recovery behavior.
-		return 'accepted' === $category || ( '' === $category && ! get_post_meta( $id, '_easycontact_review', true ) );
+		return 'accepted' === $category || ( '' === $category && ! get_post_meta( $id, '_easyformly_review', true ) );
 	}
 
 	/**
@@ -119,7 +119,7 @@ final class Review {
 	 * @param array<string, mixed> $assessment Result of AntiSpam::assess().
 	 */
 	public static function initialize( int $id, array $assessment ): bool {
-		if ( ! add_post_meta( $id, '_easycontact_antispam', $assessment, true ) ) {
+		if ( ! add_post_meta( $id, '_easyformly_antispam', $assessment, true ) ) {
 			return false;
 		}
 		return self::write( $id, $assessment['status'], 'automatic', 'accepted' !== $assessment['status'] );
@@ -137,14 +137,14 @@ final class Review {
 		if ( ! isset( self::labels()[ $category ] ) || Plugin::ENTRY !== get_post_type( $id ) ) {
 			return false;
 		}
-		$previous = get_post_meta( $id, '_easycontact_review', true );
+		$previous = get_post_meta( $id, '_easyformly_review', true );
 		if ( 'automatic' === $source && is_array( $previous ) && 'manual' === ( $previous['source'] ?? '' ) ) {
 			return true;
 		}
 		$term = term_exists( $category, self::TAXONOMY );
 		if ( ! $term ) {
 			// A category removed outside the plugin (a migration, a database cleanup) would make every archive fail.
-			delete_option( 'easycontact_review_terms_version' );
+			delete_option( 'easyformly_review_terms_version' );
 			self::create_terms();
 			$term = term_exists( $category, self::TAXONOMY );
 		}
@@ -152,8 +152,8 @@ final class Review {
 			return false;
 		}
 		// Fail closed if a partial write occurs: mark the hold before changing the category.
-		update_post_meta( $id, '_easycontact_held', '1' );
-		if ( '1' !== get_post_meta( $id, '_easycontact_held', true ) ) {
+		update_post_meta( $id, '_easyformly_held', '1' );
+		if ( '1' !== get_post_meta( $id, '_easyformly_held', true ) ) {
 			return false;
 		}
 		$result = wp_set_object_terms( $id, array( (int) ( is_array( $term ) ? $term['term_id'] : $term ) ), self::TAXONOMY, false );
@@ -166,18 +166,18 @@ final class Review {
 			'time'     => gmdate( 'c' ),
 			'reviewer' => 'manual' === $source ? get_current_user_id() : 0,
 		);
-		update_post_meta( $id, '_easycontact_review', $record );
-		if ( get_post_meta( $id, '_easycontact_review', true ) !== $record ) {
+		update_post_meta( $id, '_easyformly_review', $record );
+		if ( get_post_meta( $id, '_easyformly_review', true ) !== $record ) {
 			return false;
 		}
 		if ( 'manual' === $source ) {
-			$history   = get_post_meta( $id, '_easycontact_review_history', true );
+			$history   = get_post_meta( $id, '_easyformly_review_history', true );
 			$history   = is_array( $history ) ? $history : array();
 			$history[] = $record;
-			update_post_meta( $id, '_easycontact_review_history', array_slice( $history, -10 ) );
+			update_post_meta( $id, '_easyformly_review_history', array_slice( $history, -10 ) );
 		}
-		update_post_meta( $id, '_easycontact_held', $held ? '1' : '0' );
-		if ( get_post_meta( $id, '_easycontact_held', true ) !== ( $held ? '1' : '0' ) ) {
+		update_post_meta( $id, '_easyformly_held', $held ? '1' : '0' );
+		if ( get_post_meta( $id, '_easyformly_held', true ) !== ( $held ? '1' : '0' ) ) {
 			return false;
 		}
 		if ( $held ) {
@@ -200,7 +200,7 @@ final class Review {
 			return new WP_Error( 'busy', __( 'This submission is being processed. Try again in a few seconds.', 'easyformly' ) );
 		}
 		try {
-			if ( 'private' !== get_post_status( $id ) || get_post_meta( $id, '_easycontact_initializing', true ) ) {
+			if ( 'private' !== get_post_status( $id ) || get_post_meta( $id, '_easyformly_initializing', true ) ) {
 				return new WP_Error( 'busy', __( 'This submission is not available for review. Try again in a few seconds.', 'easyformly' ) );
 			}
 			if ( ! self::write( $id, $category, 'manual', 'accepted' !== $category || self::held( $id ) ) ) {
@@ -221,7 +221,7 @@ final class Review {
 		if ( self::held( $id ) || in_array( self::category( $id ), array( 'suspect', 'spam' ), true ) ) {
 			return true;
 		}
-		$status = get_post_meta( $id, '_easycontact_delivery', true );
+		$status = get_post_meta( $id, '_easyformly_delivery', true );
 		return is_array( $status ) && in_array( 'held', (array) ( $status['outcomes'] ?? array() ), true );
 	}
 }

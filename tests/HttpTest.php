@@ -84,7 +84,7 @@ class HttpTest extends TestCase {
 
 		$html = Renderer::render( $this->form( $definition ), $definition );
 
-		$this->assertStringContainsString( 'data-easycontact-captcha', $html, 'The CAPTCHA widget is printed' );
+		$this->assertStringContainsString( 'data-easyformly-captcha', $html, 'The CAPTCHA widget is printed' );
 		$this->assertSame( array(), $this->requests );
 	}
 
@@ -105,13 +105,13 @@ class HttpTest extends TestCase {
 		$valid = array(
 			'success'  => true,
 			'hostname' => 'EXAMPLE.org',
-			'action'   => 'easycontact_form_' . $id,
+			'action'   => 'easyformly_form_' . $id,
 		);
 		$cases = array(
 			'valid answer'     => array( $this->turnstile( $valid ), true ),
 			'refused token'    => array( $this->turnstile( array_merge( $valid, array( 'success' => false ) ) ), false ),
 			'another site'     => array( $this->turnstile( array_merge( $valid, array( 'hostname' => 'example.com' ) ) ), false ),
-			'another form'     => array( $this->turnstile( array_merge( $valid, array( 'action' => 'easycontact_form_' . ( $id + 1 ) ) ) ), false ),
+			'another form'     => array( $this->turnstile( array_merge( $valid, array( 'action' => 'easyformly_form_' . ( $id + 1 ) ) ) ), false ),
 			'server error'     => array( $this->http_response( 500, (string) wp_json_encode( $valid ) ), false ),
 			'invalid body'     => array( $this->http_response( 200, 'not json' ), false ),
 			'unreachable'      => array( new WP_Error( 'http_request_failed', 'timeout' ), false ),

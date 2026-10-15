@@ -24,8 +24,8 @@ final class Forms {
 	 */
 	public static function register_meta(): void {
 		foreach ( array(
-			'_easycontact_definition'    => 'Template, parsed schema, conditional rules and configuration of the form.',
-			'_easycontact_last_delivery' => 'Outcome of the latest delivery, shown in the form list.',
+			'_easyformly_definition'    => 'Template, parsed schema, conditional rules and configuration of the form.',
+			'_easyformly_last_delivery' => 'Outcome of the latest delivery, shown in the form list.',
 		) as $key => $description ) {
 			register_post_meta(
 				Plugin::FORM,
@@ -100,7 +100,7 @@ final class Forms {
 	 * @return array<string, mixed>|null Validated definition, or null when the form has none.
 	 */
 	public static function definition( int $form_id ): ?array {
-		$definition = get_post_meta( $form_id, '_easycontact_definition', true );
+		$definition = get_post_meta( $form_id, '_easyformly_definition', true );
 		if ( is_array( $definition ) && isset( $definition['schema']['fields'], $definition['conditions']['order'], $definition['config'] ) ) {
 			$definition['config'] = array_merge( self::config_defaults(), $definition['config'] );
 			return $definition;

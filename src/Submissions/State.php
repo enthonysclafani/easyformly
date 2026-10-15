@@ -21,7 +21,7 @@ final class State {
 	 */
 	public static function claim( string $key, int $seconds = 300 ): ?string {
 		global $wpdb;
-		$name  = 'easycontact_lock_' . $key;
+		$name  = 'easyformly_lock_' . $key;
 		$owner = ( time() + $seconds ) . '.' . wp_generate_uuid4();
 		for ( $attempt = 0; $attempt < 2; ++$attempt ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- The unique core option_name index provides atomic INSERT IGNORE; add_option() may upsert a competing lease. Ownership must bypass caches.
@@ -46,7 +46,7 @@ final class State {
 	 * @return bool Result of this operation.
 	 */
 	public static function owns( string $key, string $owner ): bool {
-		return (int) explode( '.', $owner )[0] >= time() && self::read_option( 'easycontact_lock_' . $key ) === $owner;
+		return (int) explode( '.', $owner )[0] >= time() && self::read_option( 'easyformly_lock_' . $key ) === $owner;
 	}
 
 	/**
@@ -57,7 +57,7 @@ final class State {
 	 * @return void
 	 */
 	public static function release( string $key, string $owner ): void {
-		self::remove( 'easycontact_lock_' . $key, $owner );
+		self::remove( 'easyformly_lock_' . $key, $owner );
 	}
 
 	/**
@@ -67,7 +67,7 @@ final class State {
 	 * @return array<string, mixed> Result of this operation.
 	 */
 	public static function read( string $key ): array {
-		$raw    = self::read_option( 'easycontact_state_' . $key );
+		$raw    = self::read_option( 'easyformly_state_' . $key );
 		$record = is_string( $raw ) ? json_decode( $raw, true ) : null;
 		return is_array( $record ) && ( $record['expires'] ?? 0 ) >= time() && is_array( $record['data'] ?? null ) ? $record['data'] : array();
 	}
@@ -81,7 +81,7 @@ final class State {
 	 * @return bool Result of this operation.
 	 */
 	public static function write( string $key, array $data, int $expires ): bool {
-		$name  = 'easycontact_state_' . $key;
+		$name  = 'easyformly_state_' . $key;
 		$value = wp_json_encode(
 			array(
 				'expires' => $expires,
@@ -124,8 +124,8 @@ final class State {
 		$key = 'rate_' . substr( hash_hmac( 'sha256', get_current_blog_id() . '|' . $context . '|' . $identity, wp_salt( 'auth' ) ), 0, 40 );
 		if ( wp_using_ext_object_cache() ) {
 			// A persistent cache increments atomically: no lease and no database write (D6).
-			wp_cache_add( $key, 0, 'easycontact_rate', max( 1, $window ) );
-			$count = wp_cache_incr( $key, 1, 'easycontact_rate' );
+			wp_cache_add( $key, 0, 'easyformly_rate', max( 1, $window ) );
+			$count = wp_cache_incr( $key, 1, 'easyformly_rate' );
 			return false === $count ? null : min( $cap, (int) $count );
 		}
 		$owner = null;
@@ -140,7 +140,7 @@ final class State {
 			return null;
 		}
 		try {
-			$rate = get_transient( 'easycontact_' . $key );
+			$rate = get_transient( 'easyformly_' . $key );
 			if ( ! is_array( $rate ) || ( $rate['expires'] ?? 0 ) < time() ) {
 				$rate = array(
 					'count'   => 0,
@@ -151,7 +151,7 @@ final class State {
 				return $cap;
 			}
 			$rate['count'] = min( $cap, (int) $rate['count'] + 1 );
-			return set_transient( 'easycontact_' . $key, $rate, max( 1, (int) $rate['expires'] - time() ) ) ? $rate['count'] : null;
+			return set_transient( 'easyformly_' . $key, $rate, max( 1, (int) $rate['expires'] - time() ) ) ? $rate['count'] : null;
 		} finally {
 			self::release( $key, $owner );
 		}
@@ -167,10 +167,10 @@ final class State {
 		global $wpdb;
 		for ( $batch = 0; $batch < 10; ++$batch ) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Bounded housekeeping of this plugin's non-autoloaded core options; keyset pagination must reflect deletions.
-			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT option_id, option_name, option_value FROM {$wpdb->options} WHERE option_id > %d AND (option_name LIKE %s OR option_name LIKE %s) ORDER BY option_id ASC LIMIT 100", $after_id, $wpdb->esc_like( 'easycontact_lock_' ) . '%', $wpdb->esc_like( 'easycontact_state_' ) . '%' ) );
+			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT option_id, option_name, option_value FROM {$wpdb->options} WHERE option_id > %d AND (option_name LIKE %s OR option_name LIKE %s) ORDER BY option_id ASC LIMIT 100", $after_id, $wpdb->esc_like( 'easyformly_lock_' ) . '%', $wpdb->esc_like( 'easyformly_state_' ) . '%' ) );
 			foreach ( $rows as $row ) {
 				$after_id = (int) $row->option_id;
-				$record   = str_starts_with( $row->option_name, 'easycontact_state_' ) ? json_decode( $row->option_value, true ) : null;
+				$record   = str_starts_with( $row->option_name, 'easyformly_state_' ) ? json_decode( $row->option_value, true ) : null;
 				$expires  = is_array( $record ) ? (int) ( $record['expires'] ?? 0 ) : (int) explode( '.', $row->option_value )[0];
 				if ( $expires < time() ) {
 					self::remove( $row->option_name, $row->option_value );

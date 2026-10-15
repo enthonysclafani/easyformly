@@ -8,7 +8,7 @@
  * Update URI: false
  * License: GPL-3.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
- * Text Domain: easycontact
+ * Text Domain: easyformly
  * Domain Path: /languages
  *
  * @package EasyFormly

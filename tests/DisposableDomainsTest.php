@@ -109,7 +109,7 @@ class DisposableDomainsTest extends TestCase {
 		$this->assertGreaterThan( 90000, $status['count'], 'Bundled public snapshot works before first synchronization' );
 		$this->assertFalse( $status['synced'], 'Bundled snapshot is not marked as synchronized' );
 		$this->assertTrue( DisposableDomains::contains( 'INBOX.MAILINATOR.COM' ), 'Bundled domains include case-insensitive parent matches' );
-		$this->assertFalse( DisposableDomains::contains( 'easycontact-unrelated-mailinator.com' ), 'Unrelated suffixes do not match' );
+		$this->assertFalse( DisposableDomains::contains( 'easyformly-unrelated-mailinator.com' ), 'Unrelated suffixes do not match' );
 		foreach ( array( 'gmail.com', 'outlook.com', 'proton.me', 'icloud.com', 'yahoo.com' ) as $provider ) {
 			$this->assertFalse( DisposableDomains::contains( $provider ), 'Established mail providers remain outside the list: ' . $provider );
 		}
@@ -133,7 +133,7 @@ class DisposableDomainsTest extends TestCase {
 		Page::settings_page();
 		$html = (string) ob_get_clean();
 		$this->assertStringContainsString( 'Synchronize list', $html, 'Settings offer the manual synchronization' );
-		$this->assertStringContainsString( 'form="easycontact-disposable-sync"', $html, 'The button submits a separate form' );
+		$this->assertStringContainsString( 'form="easyformly-disposable-sync"', $html, 'The button submits a separate form' );
 		$this->assertStringContainsString( 'action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"', $html, 'The separate form posts to admin-post.php' );
 		$this->assertStringNotContainsString( 'blocked_email_domains', $html, 'Settings have no manual domain fields' );
 		$this->assertStringNotContainsString( 'allowed_email_domains', $html, 'Settings have no manual domain fields' );

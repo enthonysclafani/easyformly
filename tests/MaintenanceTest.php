@@ -40,7 +40,7 @@ class MaintenanceTest extends TestCase {
 	public function test_admin_init_runs_retention_and_lock_cleanup_without_cron(): void {
 		$expired = $this->old_entry( 31 );
 		$recent  = $this->old_entry( 1 );
-		update_option( 'easycontact_lock_expired-fixture', ( time() - 10 ) . '.owner', false );
+		update_option( 'easyformly_lock_expired-fixture', ( time() - 10 ) . '.owner', false );
 
 		// Only the plugin's callback: the whole admin_init would also run the core update checks.
 		$this->assertNotFalse( has_action( 'admin_init', array( Maintenance::class, 'run' ) ) );
@@ -48,10 +48,12 @@ class MaintenanceTest extends TestCase {
 
 		$this->assertNull( get_post( $expired ), 'Expired entries are deleted' );
 		$this->assertNotNull( get_post( $recent ), 'Recent entries are kept' );
-		$this->assertFalse( get_option( 'easycontact_lock_expired-fixture' ), 'Expired locks are removed' );
+		$this->assertFalse( get_option( 'easyformly_lock_expired-fixture' ), 'Expired locks are removed' );
 		$this->assertGreaterThan( time(), get_option( Maintenance::OPTION )['due'], 'The next complete run is tomorrow' );
-		foreach ( array( 'easycontact_daily_cleanup', 'easycontact_retention_cleanup', 'easycontact_state_cleanup', 'easycontact_resume_retries' ) as $hook ) {
-			$this->assertFalse( wp_next_scheduled( $hook ), 'No WP-Cron event: ' . $hook );
+		foreach ( (array) _get_cron_array() as $events ) {
+			foreach ( array_keys( (array) $events ) as $hook ) {
+				$this->assertStringStartsNotWith( 'easyformly_', (string) $hook, 'No WP-Cron event' );
+			}
 		}
 	}
 
@@ -72,12 +74,12 @@ class MaintenanceTest extends TestCase {
 				'post_status' => 'private',
 			)
 		);
-		update_post_meta( $entry, '_easycontact_retry', array( 'hash' => 'fixture' ) );
+		update_post_meta( $entry, '_easyformly_retry', array( 'hash' => 'fixture' ) );
 		Maintenance::resume_retries();
 
 		Maintenance::run();
 
-		$this->assertNotFalse( wp_next_scheduled( 'easycontact_retry_delivery', array( $entry ) ), 'The pending retry is scheduled again' );
+		$this->assertNotFalse( wp_next_scheduled( 'easyformly_retry_delivery', array( $entry ) ), 'The pending retry is scheduled again' );
 		$this->assertNull( get_option( Maintenance::OPTION )['resume'], 'Nothing is left to resume' );
 	}
 
@@ -97,17 +99,5 @@ class MaintenanceTest extends TestCase {
 		$this->assertNotWPError( $this->submit( $id, $this->input( $id, $this->values() ) ) );
 
 		$this->assertNotFalse( has_action( 'shutdown', array( Maintenance::class, 'run' ) ) );
-	}
-
-	public function test_an_update_removes_the_events_of_the_previous_versions(): void {
-		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'easycontact_daily_cleanup' );
-		wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'easycontact_resume_retries' );
-		// Any stored version other than the current one runs the setup, as after an update.
-		update_option( 'easycontact_version', '0.0.1', true );
-
-		Plugin::init();
-
-		$this->assertFalse( wp_next_scheduled( 'easycontact_daily_cleanup' ) );
-		$this->assertFalse( wp_next_scheduled( 'easycontact_resume_retries' ) );
 	}
 }

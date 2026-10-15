@@ -84,7 +84,7 @@ class SecretsTest extends TestCase {
 
 		$this->assertSame( 1, count( $mails ), 'The notification is sent' );
 		$this->assertStringContainsString( 'Configured; leave empty to keep it', $output['admin'], 'The admin shows that a secret is saved' );
-		$this->assertStringContainsString( 'easycontact_settings[mailerlite_token]', $output['admin'], 'The settings fields are printed' );
+		$this->assertStringContainsString( 'easyformly_settings[mailerlite_token]', $output['admin'], 'The settings fields are printed' );
 		foreach ( $output as $where => $value ) {
 			$text = is_string( $value ) ? $value : (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 			foreach ( self::SECRETS as $name => $secret ) {

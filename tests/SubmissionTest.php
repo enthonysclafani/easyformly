@@ -114,11 +114,11 @@ class SubmissionTest extends TestCase {
 		$input                          = $this->input( $conditional_id, $this->values( array( 'telefono' => 'forged junk' ) ) );
 		$input['countries']['telefono'] = 'ZZ';
 		$this->assertNotWPError( $this->submit( $conditional_id, $input ), 'Hidden malformed phone/country are discarded' );
-		$this->assertArrayNotHasKey( 'telefono', get_post_meta( $this->entry(), '_easycontact_values', true ), 'Hidden phone never reaches storage' );
+		$this->assertArrayNotHasKey( 'telefono', get_post_meta( $this->entry(), '_easyformly_values', true ), 'Hidden phone never reaches storage' );
 	}
 
 	public function test_optional_dns_check_rejects_domains_without_mail_and_tolerates_outages(): void {
-		$GLOBALS['easycontact_test_dns'] = array(
+		$GLOBALS['easyformly_test_dns'] = array(
 			'null.example.org'     => array(
 				array(
 					'type'   => 'MX',
@@ -194,7 +194,7 @@ class SubmissionTest extends TestCase {
 		$block['config']['blocked_email_domains'] = 'example.org';
 		$this->assertSame( 'accepted', AntiSpam::assess( $id, $block, $this->values() )['status'], 'Retired manual blocks no longer affect submissions' );
 		$this->assertSame( 'spam', AntiSpam::assess( $id, $observe, $this->values(), array( 'honeypot' => true ) )['status'], 'Honeypot remains effective in observation mode' );
-		$this->assertFalse( DisposableDomains::contains( 'easycontact-unrelated-mailinator.com' ), 'Public lists ignore unrelated suffixes' );
+		$this->assertFalse( DisposableDomains::contains( 'easyformly-unrelated-mailinator.com' ), 'Public lists ignore unrelated suffixes' );
 		$this->assertTrue( DisposableDomains::contains( 'inbox.mailinator.com' ), 'Public lists match parent domains' );
 
 		$strict                             = $definition;
@@ -279,7 +279,7 @@ class SubmissionTest extends TestCase {
 		$legacy_input  = array(
 			'fields'  => $this->values(),
 			'ticket'  => $legacy_ticket,
-			'nonce'   => wp_create_nonce( 'easycontact_submit_' . get_current_blog_id() . '_' . $id ),
+			'nonce'   => wp_create_nonce( 'easyformly_submit_' . get_current_blog_id() . '_' . $id ),
 			'website' => '',
 		);
 		$this->assertSame( 'expired', $this->submit( $id, $legacy_input )->get_error_code(), 'Tickets without the current signature format are refused' );
@@ -296,7 +296,7 @@ class SubmissionTest extends TestCase {
 		$entry = $this->entry();
 		$this->assertSame( 'spam', Review::category( $entry ), 'Honeypot categorizes spam in private taxonomy' );
 		$this->assertTrue( Review::held( $entry ), 'Spam is held' );
-		$this->assertFalse( wp_next_scheduled( 'easycontact_retry_delivery', array( $entry ) ), 'Spam has no scheduled delivery' );
+		$this->assertFalse( wp_next_scheduled( 'easyformly_retry_delivery', array( $entry ) ), 'Spam has no scheduled delivery' );
 		$this->assertWPError( Submission::retry( $entry ), 'Cron cannot release spam' );
 
 		$this->login_admin();
@@ -308,7 +308,7 @@ class SubmissionTest extends TestCase {
 		$this->assertSame( 0, array_sum( $this->calls ), 'Nothing sent before approval' );
 
 		$block_job = static function ( $check, $post_id, $key ) use ( $entry ) {
-			return $post_id === $entry && '_easycontact_retry' === $key ? false : $check;
+			return $post_id === $entry && '_easyformly_retry' === $key ? false : $check;
 		};
 		add_filter( 'update_post_metadata', $block_job, 10, 3 );
 		$failed = Submission::retry( $entry, true, false, true );
@@ -342,7 +342,7 @@ class SubmissionTest extends TestCase {
 		$interrupted = Entries::store( $id, $definition, $this->values( array( 'newsletter' => '1' ) ), $this->assessment( 'accepted' ) );
 		update_post_meta(
 			$interrupted,
-			'_easycontact_delivery',
+			'_easyformly_delivery',
 			array(
 				'key'      => 'fixture-interrupted',
 				'outcomes' => array(
@@ -365,7 +365,7 @@ class SubmissionTest extends TestCase {
 			$this->calls,
 			'Interrupted approval skips every previously sent destination'
 		);
-		update_post_meta( $interrupted, '_easycontact_initializing', '1' );
+		update_post_meta( $interrupted, '_easyformly_initializing', '1' );
 		$this->assertFalse( Review::can_deliver( $interrupted ), 'Partially initialized entries cannot be delivered' );
 		$this->assertWPError( Review::change( $interrupted, 'spam' ), 'Partially initialized entries cannot be reviewed' );
 	}
@@ -385,7 +385,7 @@ class SubmissionTest extends TestCase {
 				array(
 					'post_type'   => Plugin::ENTRY,
 					'post_status' => 'private',
-					'meta_key'    => '_easycontact_form_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Test assertion on a handful of rows.
+					'meta_key'    => '_easyformly_form_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Test assertion on a handful of rows.
 					'meta_value'  => $no_archive_id, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Test assertion on a handful of rows.
 				)
 			),
@@ -415,13 +415,13 @@ class SubmissionTest extends TestCase {
 		$this->slack_code = 429;
 		$this->submit( $id, $this->input( $id, $this->values() ) );
 		$entry = $this->entry();
-		$this->assertNotFalse( wp_next_scheduled( 'easycontact_retry_delivery', array( $entry ) ), 'Recoverable clean failure gets bounded cron retry' );
+		$this->assertNotFalse( wp_next_scheduled( 'easyformly_retry_delivery', array( $entry ) ), 'Recoverable clean failure gets bounded cron retry' );
 
 		$this->slack_code = 200;
 		// Run the event as WP-Cron does, with its stored arguments.
-		$event = wp_get_scheduled_event( 'easycontact_retry_delivery', array( $entry ) );
-		do_action_ref_array( 'easycontact_retry_delivery', $event->args );
-		$this->assertFalse( wp_next_scheduled( 'easycontact_retry_delivery', array( $entry ) ), 'Recovery succeeds and leaves nothing scheduled' );
+		$event = wp_get_scheduled_event( 'easyformly_retry_delivery', array( $entry ) );
+		do_action_ref_array( 'easyformly_retry_delivery', $event->args );
+		$this->assertFalse( wp_next_scheduled( 'easyformly_retry_delivery', array( $entry ) ), 'Recovery succeeds and leaves nothing scheduled' );
 		$this->assertSame(
 			array(
 				'mail'       => 1,
@@ -433,7 +433,7 @@ class SubmissionTest extends TestCase {
 		);
 		$this->login_admin();
 		$this->assertTrue( Review::change( $entry, 'spam' ), 'Entry can be marked as spam' );
-		$this->assertFalse( wp_next_scheduled( 'easycontact_retry_delivery', array( $entry ) ), 'Manual spam classification cancels recovery' );
+		$this->assertFalse( wp_next_scheduled( 'easyformly_retry_delivery', array( $entry ) ), 'Manual spam classification cancels recovery' );
 	}
 
 	public function test_privacy_tools_bulk_review_and_retention(): void {
@@ -453,7 +453,7 @@ class SubmissionTest extends TestCase {
 
 		$this->login_admin();
 		$_REQUEST['_wpnonce'] = wp_create_nonce( 'bulk-posts' );
-		Screen::bulk( admin_url( 'edit.php' ), 'easycontact-classify-suspect', array( $accepted, $suspect ) );
+		Screen::bulk( admin_url( 'edit.php' ), 'easyformly-classify-suspect', array( $accepted, $suspect ) );
 		$this->assertSame( array( 'suspect', 'suspect' ), array( Review::category( $accepted ), Review::category( $suspect ) ), 'Bulk classification handles multiple entries' );
 
 		update_option(
@@ -486,10 +486,10 @@ class SubmissionTest extends TestCase {
 		}
 
 		$erase = Entries::store( $id, $definition, $this->values( array( 'email' => 'erase-fixture@example.org' ) ) );
-		wp_schedule_single_event( time() + 60, 'easycontact_retry_delivery', array( $erase ) );
+		wp_schedule_single_event( time() + 60, 'easyformly_retry_delivery', array( $erase ) );
 		$this->assertNotEmpty( Privacy::erase( 'erase-fixture@example.org' )['items_removed'], 'Privacy erasure removes the entry' );
 		$this->assertNull( get_post( $erase ), 'Erased entry is gone' );
-		$this->assertFalse( wp_next_scheduled( 'easycontact_retry_delivery', array( $erase ) ), 'Privacy erasure also cancels pending work' );
+		$this->assertFalse( wp_next_scheduled( 'easyformly_retry_delivery', array( $erase ) ), 'Privacy erasure also cancels pending work' );
 	}
 
 	public function test_admin_validation_keeps_safe_values_and_markup_has_protections(): void {
@@ -512,9 +512,9 @@ class SubmissionTest extends TestCase {
 		$this->assertArrayNotHasKey( 'allowed_email_domains', $settings, 'Retired manual lists are discarded' );
 
 		$html = Renderer::render( $this->form( $definition ), $definition );
-		$this->assertStringContainsString( 'data-easycontact-country', $html, 'Markup includes the country selector' );
+		$this->assertStringContainsString( 'data-easyformly-country', $html, 'Markup includes the country selector' );
 		$this->assertStringContainsString( 'name="countries[telefono]"', $html, 'Markup includes the country field' );
-		$this->assertStringContainsString( 'data-easycontact-trap', $html, 'Markup includes the honeypot' );
+		$this->assertStringContainsString( 'data-easyformly-trap', $html, 'Markup includes the honeypot' );
 	}
 
 	public function test_archive_recreates_review_categories_removed_outside_the_plugin(): void {

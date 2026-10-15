@@ -136,9 +136,6 @@ The browser refreshes an expired submission ticket before a first send and prese
 = Are translations supported? =
 All interface strings are in English and use the easyformly text domain. The package includes a POT template and the Italian translation (languages/easyformly-it_IT.po and .mo). Translations in WordPress's language directory take precedence over the bundled one.
 
-= How do I move from EasyContact 1.0.0? =
-EasyFormly is the new name of EasyContact and uses the same forms, submissions and settings. Install EasyFormly and activate it: EasyContact is deactivated automatically. Pages with the [easycontact] shortcode keep working. Deleting EasyContact afterwards keeps forms, submissions and settings even when data removal on uninstall is enabled.
-
 = Can forms be imported from other plugins? =
 This version uses its own small tag syntax. It does not include automatic imports, a drag-and-drop builder, file uploads, payments, multiple steps, or separate confirmation emails to the submitter.
 

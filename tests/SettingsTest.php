@@ -67,7 +67,7 @@ class SettingsTest extends TestCase {
 		Plugin::init();
 		$keys = get_registered_meta_keys( 'post', Plugin::FORM );
 
-		foreach ( array( '_easycontact_definition', '_easycontact_last_delivery' ) as $key ) {
+		foreach ( array( '_easyformly_definition', '_easyformly_last_delivery' ) as $key ) {
 			$this->assertArrayHasKey( $key, $keys );
 			$this->assertTrue( $keys[ $key ]['single'] );
 			$this->assertFalse( $keys[ $key ]['show_in_rest'] );
@@ -75,8 +75,8 @@ class SettingsTest extends TestCase {
 
 		$form = $this->form( $this->definition() );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		$this->assertFalse( current_user_can( 'edit_post_meta', $form, '_easycontact_definition' ), 'Not editable through the generic meta APIs' );
-		$this->assertIsArray( get_post_meta( $form, '_easycontact_definition', true ), 'The definition still reads as before' );
-		$this->assertSame( '', get_post_meta( $form, '_easycontact_last_delivery', true ), 'A missing meta still reads as an empty string' );
+		$this->assertFalse( current_user_can( 'edit_post_meta', $form, '_easyformly_definition' ), 'Not editable through the generic meta APIs' );
+		$this->assertIsArray( get_post_meta( $form, '_easyformly_definition', true ), 'The definition still reads as before' );
+		$this->assertSame( '', get_post_meta( $form, '_easyformly_last_delivery', true ), 'A missing meta still reads as an empty string' );
 	}
 }

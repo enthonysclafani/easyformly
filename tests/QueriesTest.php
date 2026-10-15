@@ -39,15 +39,14 @@ class QueriesTest extends TestCase {
 	 * Setup runs again after an update, then stops costing queries.
 	 */
 	public function test_setup_runs_again_after_an_update(): void {
-		update_option( 'easycontact_version', '0.0.1', false );
+		update_option( 'easyformly_version', '0.0.1', false );
 		delete_option( Settings::OPTION );
 
 		Plugin::init();
 
-		$this->assertSame( EASYFORMLY_VERSION, get_option( 'easycontact_version' ) );
+		$this->assertSame( EASYFORMLY_VERSION, get_option( 'easyformly_version' ) );
 		$this->assertIsArray( get_option( Settings::OPTION ) );
-		$this->assertArrayHasKey( 'easycontact_version', wp_load_alloptions(), 'The version check is free on every request' );
-		$this->assertFalse( wp_next_scheduled( 'easycontact_daily_cleanup' ), 'Maintenance runs without WP-Cron (D1)' );
+		$this->assertArrayHasKey( 'easyformly_version', wp_load_alloptions(), 'The version check is free on every request' );
 		$this->assertSame( 0, get_option( Maintenance::OPTION )['resume'], 'Retries left by the update are resumed by the next maintenance run' );
 		$this->assertArrayNotHasKey( Maintenance::OPTION, wp_load_alloptions(), 'The cursors are not autoloaded' );
 	}
@@ -60,8 +59,8 @@ class QueriesTest extends TestCase {
 		$this->go_to( get_permalink( $post ) );
 		do_action( 'wp_enqueue_scripts' );
 
-		$this->assertFalse( wp_style_is( 'easycontact-frontend', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'easycontact-frontend', 'enqueued' ) );
-		$this->assertFalse( wp_script_is( 'easycontact-turnstile', 'enqueued' ) );
+		$this->assertFalse( wp_style_is( 'easyformly-frontend', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'easyformly-frontend', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'easyformly-turnstile', 'enqueued' ) );
 	}
 }

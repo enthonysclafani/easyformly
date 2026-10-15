@@ -13,9 +13,9 @@ Sono tre le porte che un visitatore anonimo può chiamare. Tutto il resto richie
 
 | Porta | Cosa accetta | Verifica |
 |---|---|---|
-| `GET /easycontact/v1/forms/{id}/token` | Solo moduli pubblicati con una definizione valida; risposta con `Cache-Control: no-store` | `RestTest::test_token_is_issued_only_for_published_forms_and_never_cached` |
-| `POST /easycontact/v1/forms/{id}/submit` | Argomenti tipizzati e con limiti; corpo fino a 50 KB | `RestTest::test_routes_declare_typed_args_and_refuse_malformed_parameters`, `RestTest::test_submission_refuses_missing_tokens_and_oversized_bodies` |
-| `admin-post.php?action=easycontact_submit` (anche senza login) | Lo stesso percorso di validazione del REST, `submit()` | `SubmissionTest`, `RestTest` |
+| `GET /easyformly/v1/forms/{id}/token` | Solo moduli pubblicati con una definizione valida; risposta con `Cache-Control: no-store` | `RestTest::test_token_is_issued_only_for_published_forms_and_never_cached` |
+| `POST /easyformly/v1/forms/{id}/submit` | Argomenti tipizzati e con limiti; corpo fino a 50 KB | `RestTest::test_routes_declare_typed_args_and_refuse_malformed_parameters`, `RestTest::test_submission_refuses_missing_tokens_and_oversized_bodies` |
+| `admin-post.php?action=easyformly_submit` (anche senza login) | Lo stesso percorso di validazione del REST, `submit()` | `SubmissionTest`, `RestTest` |
 
 I post type del plugin non hanno route nel REST del core (`RestTest::test_forms_and_entries_are_not_exposed_by_core_routes`).
 
@@ -43,8 +43,8 @@ Il plugin non accetta file: nessun tipo di campo carica allegati.
 
 Token MailerLite, chiave segreta di Turnstile e webhook Slack.
 
-- [x] L'option `easycontact_settings` è registrata senza REST (`SettingsTest::test_the_option_with_its_secrets_is_registered_without_rest`).
-- [x] Il meta `_easycontact_definition`, che contiene il webhook, è privato e senza REST (`SettingsTest::test_form_meta_is_registered_private`).
+- [x] L'option `easyformly_settings` è registrata senza REST (`SettingsTest::test_the_option_with_its_secrets_is_registered_without_rest`).
+- [x] Il meta `_easyformly_definition`, che contiene il webhook, è privato e senza REST (`SettingsTest::test_form_meta_is_registered_private`).
 - [x] Nelle schermate admin i segreti sono campi password vuoti con l'indicazione "già configurato".
 - [x] Nessun segreto nella pagina del modulo, nella risposta del token o dell'invio, nell'email, nell'export privacy
       o nelle schermate admin: `SecretsTest::test_secrets_never_leave_the_server`.

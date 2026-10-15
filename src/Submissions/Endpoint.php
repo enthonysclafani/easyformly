@@ -27,8 +27,8 @@ final class Endpoint {
 	 */
 	public static function boot(): void {
 		add_action( 'rest_api_init', array( self::class, 'routes' ) );
-		add_action( 'admin_post_easycontact_submit', array( self::class, 'native_submit' ) );
-		add_action( 'admin_post_nopriv_easycontact_submit', array( self::class, 'native_submit' ) );
+		add_action( 'admin_post_easyformly_submit', array( self::class, 'native_submit' ) );
+		add_action( 'admin_post_nopriv_easyformly_submit', array( self::class, 'native_submit' ) );
 	}
 
 	/**
@@ -43,7 +43,7 @@ final class Endpoint {
 	 */
 	public static function routes(): void {
 		register_rest_route(
-			'easycontact/v1',
+			'easyformly/v1',
 			'/forms/(?P<id>\d+)/token',
 			array(
 				'methods'             => 'GET',
@@ -58,7 +58,7 @@ final class Endpoint {
 			)
 		);
 		register_rest_route(
-			'easycontact/v1',
+			'easyformly/v1',
 			'/forms/(?P<id>\d+)/submit',
 			array(
 				'methods'             => 'POST',
@@ -124,7 +124,7 @@ final class Endpoint {
 			$clock = $issued . '.' . $uuid . '.' . hash_hmac( 'sha256', get_current_blog_id() . '|' . $id . '|' . $issued . '|' . $uuid . '|clock', wp_salt( 'auth' ) );
 		}
 		return array(
-			'nonce'    => wp_create_nonce( 'easycontact_submit_' . get_current_blog_id() . '_' . $id ),
+			'nonce'    => wp_create_nonce( 'easyformly_submit_' . get_current_blog_id() . '_' . $id ),
 			'ticket'   => $ticket,
 			'expires'  => $issued + HOUR_IN_SECONDS,
 			'honeypot' => self::honeypot_name( $id, $ticket ),
@@ -222,7 +222,7 @@ final class Endpoint {
 		}
 		$nonce  = is_string( $input['nonce'] ?? null ) ? $input['nonce'] : '';
 		$ticket = is_string( $input['ticket'] ?? null ) ? $input['ticket'] : '';
-		if ( ! wp_verify_nonce( $nonce, 'easycontact_submit_' . get_current_blog_id() . '_' . $id ) || ! self::valid_ticket( $id, $ticket ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'easyformly_submit_' . get_current_blog_id() . '_' . $id ) || ! self::valid_ticket( $id, $ticket ) ) {
 			return new WP_Error( 'expired', __( 'The form session has expired. Reload the page.', 'easyformly' ), array( 'status' => 403 ) );
 		}
 		if ( ! is_array( $input['fields'] ?? null ) || count( $input['fields'] ) > 80 || strlen( (string) wp_json_encode( $input['fields'] ) ) > 40000 || ( isset( $input['countries'] ) && ( ! is_array( $input['countries'] ) || count( $input['countries'] ) > 40 || strlen( (string) wp_json_encode( $input['countries'] ) ) > 5000 ) ) ) {
@@ -299,7 +299,7 @@ final class Endpoint {
 			);
 		}
 		$return = is_string( $input['return_url'] ?? null ) ? wp_validate_redirect( $input['return_url'], home_url( '/' ) ) : home_url( '/' );
-		wp_safe_redirect( add_query_arg( ! empty( $result['held'] ) ? 'easycontact_held' : 'easycontact_sent', $id, $return ) );
+		wp_safe_redirect( add_query_arg( ! empty( $result['held'] ) ? 'easyformly_held' : 'easyformly_sent', $id, $return ) );
 		exit;
 	}
 }

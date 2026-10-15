@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * The list ships with the plugin and is replaced only by a manual synchronization.
  */
 final class DisposableDomains {
-	public const OPTION       = 'easycontact_disposable_domains';
+	public const OPTION       = 'easyformly_disposable_domains';
 	private const MAX_BYTES   = 8 * 1024 * 1024;
 	private const MAX_DOMAINS = 250000;
 

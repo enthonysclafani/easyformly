@@ -27,7 +27,7 @@ final class Submission {
 	 * @return void
 	 */
 	public static function boot(): void {
-		add_action( 'easycontact_retry_delivery', array( self::class, 'scheduled_retry' ) );
+		add_action( 'easyformly_retry_delivery', array( self::class, 'scheduled_retry' ) );
 		add_action( 'before_delete_post', array( self::class, 'cancel_entry' ) );
 		add_action( 'wp_trash_post', array( self::class, 'cancel_entry' ) );
 	}
@@ -144,7 +144,7 @@ final class Submission {
 					return self::uncertain_error();
 				}
 				// An administrator/cron may have recovered a previous interrupted attempt.
-				$current = get_post_meta( $state['entry'], '_easycontact_delivery', true );
+				$current = get_post_meta( $state['entry'], '_easyformly_delivery', true );
 				if ( is_array( $current ) && ( $current['key'] ?? '' ) === $key ) {
 					$state['outcomes'] = $current['outcomes'];
 				}
@@ -235,7 +235,7 @@ final class Submission {
 			return new WP_Error( 'busy', __( 'This submission is being processed. Try again in a few seconds.', 'easyformly' ) );
 		}
 		try {
-			wp_clear_scheduled_hook( 'easycontact_retry_delivery', array( $entry_id ) );
+			wp_clear_scheduled_hook( 'easyformly_retry_delivery', array( $entry_id ) );
 			$entry = get_post( $entry_id );
 			if ( ! $entry || Plugin::ENTRY !== $entry->post_type || 'private' !== $entry->post_status ) {
 				return new WP_Error( 'entry', __( 'Submission not available.', 'easyformly' ) );
@@ -244,16 +244,16 @@ final class Submission {
 				self::cancel( $entry_id );
 				return new WP_Error( 'held', __( 'The submission is held. Use Approve and send after reviewing it.', 'easyformly' ) );
 			}
-			if ( get_post_meta( $entry_id, '_easycontact_initializing', true ) ) {
+			if ( get_post_meta( $entry_id, '_easyformly_initializing', true ) ) {
 				return new WP_Error( 'busy', __( 'This submission is being processed. Try again in a few seconds.', 'easyformly' ) );
 			}
 			if ( $approve && ( ! $manual || ! Review::requires_approval( $entry_id ) ) ) {
 				return new WP_Error( 'approved', __( 'This submission has already been approved or is not in quarantine.', 'easyformly' ) );
 			}
-			$form_id    = (int) get_post_meta( $entry_id, '_easycontact_form_id', true );
+			$form_id    = (int) get_post_meta( $entry_id, '_easyformly_form_id', true );
 			$definition = Forms::definition( $form_id );
-			$job        = get_post_meta( $entry_id, '_easycontact_retry', true );
-			$status     = get_post_meta( $entry_id, '_easycontact_delivery', true );
+			$job        = get_post_meta( $entry_id, '_easyformly_retry', true );
+			$status     = get_post_meta( $entry_id, '_easyformly_delivery', true );
 			if ( ! is_array( $status ) || ! $definition || 'publish' !== get_post_status( $form_id ) || ( ! $manual && ! Entries::stores_quarantine( $definition['config'] ) ) ) {
 				self::cancel( $entry_id );
 				return new WP_Error( 'form', __( 'The original form is not available for delivery.', 'easyformly' ) );
@@ -264,7 +264,7 @@ final class Submission {
 				self::cancel( $entry_id );
 				return null;
 			}
-			$validated = Schema::validate( $definition, (array) get_post_meta( $entry_id, '_easycontact_values', true ), array(), true );
+			$validated = Schema::validate( $definition, (array) get_post_meta( $entry_id, '_easyformly_values', true ), array(), true );
 			if ( $validated['errors'] ) {
 				self::cancel( $entry_id );
 				return new WP_Error( 'validation', __( 'The archived data does not match the form\'s current configuration.', 'easyformly' ) );
@@ -275,8 +275,8 @@ final class Submission {
 				'expires'  => time() + DAY_IN_SECONDS,
 			) : $job;
 			++$job['attempts'];
-			update_post_meta( $entry_id, '_easycontact_retry', $job );
-			if ( get_post_meta( $entry_id, '_easycontact_retry', true ) !== $job ) {
+			update_post_meta( $entry_id, '_easyformly_retry', $job );
+			if ( get_post_meta( $entry_id, '_easyformly_retry', true ) !== $job ) {
 				return new WP_Error( 'save', __( 'Delivery could not be prepared.', 'easyformly' ) );
 			}
 			if ( $approve && ( ! State::owns( $lease, $owner ) || ! Review::write( $entry_id, 'accepted', 'manual', false ) ) ) {
@@ -297,7 +297,7 @@ final class Submission {
 				}
 				$outcomes[ $adapter ] = $adapter . '_uncertain';
 				self::status( $form_id, $entry_id, $outcomes, $status['key'], false );
-				if ( ( get_post_meta( $entry_id, '_easycontact_delivery', true )['outcomes'] ?? array() ) !== $outcomes ) {
+				if ( ( get_post_meta( $entry_id, '_easyformly_delivery', true )['outcomes'] ?? array() ) !== $outcomes ) {
 					return null;
 				}
 				$outcomes[ $adapter ] = self::send( $adapter, $form_id, $definition, $validated['values'] );
@@ -330,8 +330,8 @@ final class Submission {
 	 * @return void
 	 */
 	public static function cancel( int $entry_id ): void {
-		wp_clear_scheduled_hook( 'easycontact_retry_delivery', array( $entry_id ) );
-		delete_post_meta( $entry_id, '_easycontact_retry' );
+		wp_clear_scheduled_hook( 'easyformly_retry_delivery', array( $entry_id ) );
+		delete_post_meta( $entry_id, '_easyformly_retry' );
 	}
 
 	/**
@@ -349,7 +349,7 @@ final class Submission {
 			array(
 				'post_type'              => Plugin::ENTRY,
 				'post_status'            => 'any',
-				'meta_key'               => '_easycontact_retry', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Bounded batch, only after an update.
+				'meta_key'               => '_easyformly_retry', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Bounded batch, only after an update.
 				'fields'                 => 'ids',
 				'orderby'                => 'ID',
 				'order'                  => 'ASC',
@@ -361,9 +361,9 @@ final class Submission {
 		remove_filter( 'posts_where', $after );
 		$ids = wp_parse_id_list( $query->posts ?? array() );
 		foreach ( $ids as $entry_id ) {
-			$job = get_post_meta( $entry_id, '_easycontact_retry', true );
-			if ( is_array( $job ) && ! wp_next_scheduled( 'easycontact_retry_delivery', array( (int) $entry_id ) ) ) {
-				wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'easycontact_retry_delivery', array( (int) $entry_id ) );
+			$job = get_post_meta( $entry_id, '_easyformly_retry', true );
+			if ( is_array( $job ) && ! wp_next_scheduled( 'easyformly_retry_delivery', array( (int) $entry_id ) ) ) {
+				wp_schedule_single_event( time() + MINUTE_IN_SECONDS, 'easyformly_retry_delivery', array( (int) $entry_id ) );
 			}
 		}
 		return count( $ids ) === 50 ? (int) end( $ids ) : null;
@@ -431,12 +431,12 @@ final class Submission {
 			'key'      => $key,
 			'outcomes' => $outcomes,
 		);
-		$latest = get_post_meta( $form_id, '_easycontact_last_delivery', true );
+		$latest = get_post_meta( $form_id, '_easyformly_last_delivery', true );
 		if ( $initial || ( is_array( $latest ) && ( $latest['key'] ?? '' ) === $key ) ) {
-			update_post_meta( $form_id, '_easycontact_last_delivery', $status );
+			update_post_meta( $form_id, '_easyformly_last_delivery', $status );
 		}
 		if ( $entry_id > 0 && get_post( $entry_id ) ) {
-			update_post_meta( $entry_id, '_easycontact_delivery', $status );
+			update_post_meta( $entry_id, '_easyformly_delivery', $status );
 		}
 	}
 
@@ -467,13 +467,13 @@ final class Submission {
 			self::cancel( $entry_id );
 			return;
 		}
-		update_post_meta( $entry_id, '_easycontact_retry', $job );
-		if ( get_post_meta( $entry_id, '_easycontact_retry', true ) !== $job ) {
+		update_post_meta( $entry_id, '_easyformly_retry', $job );
+		if ( get_post_meta( $entry_id, '_easyformly_retry', true ) !== $job ) {
 			return;
 		}
 		$delay = array( MINUTE_IN_SECONDS, 5 * MINUTE_IN_SECONDS, 15 * MINUTE_IN_SECONDS )[ $job['attempts'] ];
-		if ( ! wp_next_scheduled( 'easycontact_retry_delivery', array( $entry_id ) ) ) {
-			wp_schedule_single_event( time() + $delay, 'easycontact_retry_delivery', array( $entry_id ) );
+		if ( ! wp_next_scheduled( 'easyformly_retry_delivery', array( $entry_id ) ) ) {
+			wp_schedule_single_event( time() + $delay, 'easyformly_retry_delivery', array( $entry_id ) );
 		}
 	}
 

@@ -4,7 +4,7 @@
  *
  * The plugin calls dns_get_record() unqualified from the EasyFormly\AntiSpam namespace, so
  * this function shadows the global one in every test. Records come from
- * $GLOBALS['easycontact_test_dns']; an unknown domain behaves like a resolver failure.
+ * $GLOBALS['easyformly_test_dns']; an unknown domain behaves like a resolver failure.
  *
  * @package EasyFormly
  */
@@ -19,5 +19,5 @@ namespace EasyFormly\AntiSpam;
  * @return array|false
  */
 function dns_get_record( $domain, $type ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Same signature as the core function it shadows.
-	return $GLOBALS['easycontact_test_dns'][ $domain ] ?? false;
+	return $GLOBALS['easyformly_test_dns'][ $domain ] ?? false;
 }

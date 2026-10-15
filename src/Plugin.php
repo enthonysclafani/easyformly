@@ -28,20 +28,8 @@ defined( 'ABSPATH' ) || exit;
  * Register post types and every part of the plugin, and own activation and deactivation.
  */
 final class Plugin {
-	public const FORM  = 'easycontact_form';
-	public const ENTRY = 'easycontact_entry';
-
-	/**
-	 * Events of version 1.0.0, replaced by Maintenance (D1): removed by the setup after an update.
-	 *
-	 * @var list<string>
-	 */
-	private const LEGACY_EVENTS = array( 'easycontact_daily_cleanup', 'easycontact_retention_cleanup', 'easycontact_state_cleanup', 'easycontact_resume_retries' );
-
-	/**
-	 * The plugin before the rename (EasyContact 1.0.0): it uses the same data, so the two never run together (D10).
-	 */
-	public const LEGACY_PLUGIN = 'easycontact/easycontact.php';
+	public const FORM  = 'easyformly_form';
+	public const ENTRY = 'easyformly_entry';
 
 	/**
 	 * Register the hooks of every part of the plugin, one line each.
@@ -49,12 +37,6 @@ final class Plugin {
 	 * @return void
 	 */
 	public static function register(): void {
-		// EasyContact 1.0.0 loads first and already registers the same names: it serves this request alone.
-		if ( defined( 'EASYCONTACT_VERSION' ) ) {
-			add_action( 'admin_init', array( self::class, 'replace_legacy' ) );
-			return;
-		}
-		add_action( 'pre_uninstall_plugin', array( self::class, 'guard_legacy_uninstall' ) );
 		add_action( 'init', array( self::class, 'init' ) );
 		Submission::boot();
 		Maintenance::boot();
@@ -72,74 +54,12 @@ final class Plugin {
 	}
 
 	/**
-	 * Initialize non-autoloaded settings and take over from EasyContact 1.0.0.
+	 * Initialize non-autoloaded settings.
 	 *
-	 * @param bool $network_wide Whether activation applies to the whole network.
 	 * @return void
 	 */
-	public static function activate( bool $network_wide = false ): void {
+	public static function activate(): void {
 		add_option( Settings::OPTION, Settings::defaults(), '', false );
-		self::deactivate_legacy( $network_wide );
-	}
-
-	/**
-	 * Deactivate EasyContact 1.0.0 when an administrator opens the dashboard with both plugins active.
-	 *
-	 * @return void
-	 */
-	public static function replace_legacy(): void {
-		if ( current_user_can( 'activate_plugins' ) ) {
-			self::deactivate_legacy( is_multisite() && is_plugin_active_for_network( plugin_basename( EASYFORMLY_FILE ) ) );
-		}
-	}
-
-	/**
-	 * Deactivate EasyContact 1.0.0 where EasyFormly is active: on the current site, or on the network.
-	 *
-	 * Its own deactivation clears the version and the retries, so the next request runs the setup of EasyFormly,
-	 * which resumes them. A network activation of EasyContact is left alone when EasyFormly runs on one site only.
-	 *
-	 * @param bool $network_wide Whether EasyFormly is active on the whole network.
-	 * @return void
-	 */
-	private static function deactivate_legacy( bool $network_wide ): void {
-		if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-		$on_network = is_multisite() && is_plugin_active_for_network( self::LEGACY_PLUGIN );
-		if ( $on_network && $network_wide ) {
-			deactivate_plugins( self::LEGACY_PLUGIN, false, true );
-		} elseif ( ! $on_network && is_plugin_active( self::LEGACY_PLUGIN ) ) {
-			deactivate_plugins( self::LEGACY_PLUGIN );
-		}
-	}
-
-	/**
-	 * Keep forms, entries and settings when EasyContact 1.0.0 is deleted: they now belong to EasyFormly.
-	 *
-	 * Its uninstall.php reads the same settings; during that request it sees data removal turned off. The technical
-	 * data it removes (version, locks, receipts, retries) is rebuilt by the setup on the next request.
-	 *
-	 * @param string $plugin Basename of the plugin being uninstalled.
-	 * @return void
-	 */
-	public static function guard_legacy_uninstall( $plugin ): void {
-		if ( self::LEGACY_PLUGIN === $plugin ) {
-			add_filter( 'option_' . Settings::OPTION, array( self::class, 'keep_data' ) );
-		}
-	}
-
-	/**
-	 * Settings as read by the uninstall of EasyContact 1.0.0: data removal off.
-	 *
-	 * @param mixed $settings Stored settings.
-	 * @return mixed Settings without data removal.
-	 */
-	public static function keep_data( $settings ) {
-		if ( is_array( $settings ) ) {
-			$settings['delete_on_uninstall'] = false;
-		}
-		return $settings;
 	}
 
 	/**
@@ -178,10 +98,8 @@ final class Plugin {
 	 * @return void
 	 */
 	private static function unschedule(): void {
-		foreach ( array_merge( self::LEGACY_EVENTS, array( 'easycontact_retry_delivery' ) ) as $hook ) {
-			wp_unschedule_hook( $hook );
-		}
-		delete_option( 'easycontact_version' );
+		wp_unschedule_hook( 'easyformly_retry_delivery' );
+		delete_option( 'easyformly_version' );
 	}
 
 	/**
@@ -247,7 +165,7 @@ final class Plugin {
 		Forms::register_meta();
 		Review::register();
 		// The version is autoloaded, so the check costs no query; setup runs only after an update.
-		if ( EASYFORMLY_VERSION !== get_option( 'easycontact_version' ) ) {
+		if ( EASYFORMLY_VERSION !== get_option( 'easyformly_version' ) ) {
 			self::setup();
 		}
 	}
@@ -263,10 +181,7 @@ final class Plugin {
 			// Retried on the next request.
 			return;
 		}
-		foreach ( self::LEGACY_EVENTS as $hook ) {
-			wp_unschedule_hook( $hook );
-		}
-		update_option( 'easycontact_version', EASYFORMLY_VERSION, true );
+		update_option( 'easyformly_version', EASYFORMLY_VERSION, true );
 		Maintenance::resume_retries();
 	}
 }

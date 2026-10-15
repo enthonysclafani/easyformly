@@ -1,5 +1,8 @@
 # EasyFormly rispetto agli standard di EasyRankly
 
+> Documento storico: i nomi `easycontact` qui sotto sono quelli della 1.0.0. Dal 15 ottobre 2026 il plugin si
+> chiama EasyFormly e tutti i nomi usano `easyformly` (D10).
+
 Analisi del 13 ottobre 2026 di EasyContact 1.0.0 (branch `main` e `Refactory`) confrontato con EasyRankly (branch
 `Refactory`), e stato del lavoro per portare il plugin in produzione con quegli standard. Il piano operativo è
 `docs/piano-standard.md`; le decisioni sono in `docs/decisioni.md`.

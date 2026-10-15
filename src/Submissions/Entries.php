@@ -55,7 +55,7 @@ final class Entries {
 				'post_title'   => wp_slash( get_the_title( $form_id ) . ' · ' . current_time( 'mysql' ) ),
 				'post_content' => '',
 				'post_author'  => 0,
-				'meta_input'   => array( '_easycontact_initializing' => '1' ),
+				'meta_input'   => array( '_easyformly_initializing' => '1' ),
 			),
 			true
 		);
@@ -72,9 +72,9 @@ final class Entries {
 			}
 		}
 		foreach ( array(
-			'_easycontact_form_id' => $form_id,
-			'_easycontact_values'  => $values,
-			'_easycontact_labels'  => $labels,
+			'_easyformly_form_id' => $form_id,
+			'_easyformly_values'  => $values,
+			'_easyformly_labels'  => $labels,
 		) as $key => $value ) {
 			if ( ! add_post_meta( $id, $key, wp_slash( $value ), true ) ) {
 				wp_delete_post( $id, true );
@@ -82,7 +82,7 @@ final class Entries {
 			}
 		}
 		foreach ( array_unique( $emails ) as $email ) {
-			if ( ! add_post_meta( $id, '_easycontact_email', wp_slash( $email ) ) ) {
+			if ( ! add_post_meta( $id, '_easyformly_email', wp_slash( $email ) ) ) {
 				wp_delete_post( $id, true );
 				return new WP_Error( 'archive_failed', 'archive_failed' );
 			}
@@ -91,7 +91,7 @@ final class Entries {
 			wp_delete_post( $id, true );
 			return new WP_Error( 'archive_failed', 'archive_failed' );
 		}
-		delete_post_meta( $id, '_easycontact_initializing' );
+		delete_post_meta( $id, '_easyformly_initializing' );
 		return $id;
 	}
 

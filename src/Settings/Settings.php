@@ -10,10 +10,10 @@ namespace EasyFormly\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The `easycontact_settings` option, read with defaults for missing keys.
+ * The `easyformly_settings` option, read with defaults for missing keys.
  */
 final class Settings {
-	public const OPTION = 'easycontact_settings';
+	public const OPTION = 'easyformly_settings';
 
 	/**
 	 * Return conservative defaults for site settings.
