@@ -11,10 +11,10 @@ Non correggi nulla: le correzioni le decide l'agente principale.
 Comandi:
 - `composer check` (tutto), oppure singolarmente `composer architecture`, `composer lint`, `composer analyse`, `composer test`.
 - Log della CI. Indica sempre il repository, perché nel cloud il remote git passa da un proxy e `gh` non lo riconosce:
-  - `gh run list -R enthonysclafani/easycontact --branch <branch> --limit 5`
-  - `gh run view <id> -R enthonysclafani/easycontact --log-failed`
-  - se questi falliscono, usa la REST API: `gh api "repos/enthonysclafani/easycontact/actions/runs?branch=<branch>&per_page=5"`
-    e `gh api repos/enthonysclafani/easycontact/actions/jobs/<job-id>/logs`.
+  - `gh run list -R enthonysclafani/easyformly --branch <branch> --limit 5`
+  - `gh run view <id> -R enthonysclafani/easyformly --log-failed`
+  - se questi falliscono, usa la REST API: `gh api "repos/enthonysclafani/easyformly/actions/runs?branch=<branch>&per_page=5"`
+    e `gh api repos/enthonysclafani/easyformly/actions/jobs/<job-id>/logs`.
   - Le chiamate GraphQL (`gh pr`, `gh issue`) nel cloud sono bloccate: non usarle.
 
 Regole:
