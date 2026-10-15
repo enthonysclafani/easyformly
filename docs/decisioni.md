@@ -21,7 +21,7 @@ solo in questo file. Quando una decisione viene presa: si scrive la data e il mo
 | D7 | Requisiti minimi | presa (già così) | |
 | D8 | Nomi dei dati | presa | |
 | D9 | Lingua delle stringhe sorgente | presa, fatta | Fase 5.3, `languages/easyformly-it_IT.po` |
-| D10 | Nuovo nome: EasyFormly | presa (default, da confermare) | Rinomina del repository GitHub, a cura di Enthony |
+| D10 | Nuovo nome: EasyFormly | presa (default, da confermare) | |
 
 ## Prese
 
@@ -136,7 +136,8 @@ italiano dentro `__()`.
     EasyFormly attivo, in quella richiesta "elimina i dati alla disinstallazione" risulta spento, quindi moduli,
     invii e impostazioni restano. I dati tecnici che toglie (versione, lock, ricevute, cache dei domini) li ricrea
     il setup. Test: `tests/RenameTest.php`, `tests/UninstallTest.php`.
-- Il repository GitHub si chiama ancora `enthonysclafani/easycontact`: la rinomina la fa Enthony, se la vuole.
+- Repository: dal 15 ottobre 2026 il lavoro continua in `enthonysclafani/easyformly`, creato da Enthony, con la storia
+  completa di `main` e `Refactory` copiata da `enthonysclafani/easycontact` senza riscriverla (PR #1–#25 sono là).
 - Decisione (15 ottobre 2026): default scelto da Claude sulla richiesta di Enthony, da confermare nella pull
   request della rinomina.
 
