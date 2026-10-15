@@ -83,7 +83,7 @@ final class AntiSpam {
 	 * @return string 'valid', 'invalid' or 'unknown'.
 	 */
 	public static function mail_domain( string $domain ): string {
-		$key    = 'easycontact_dns_' . substr( hash_hmac( 'sha256', $domain, wp_salt( 'auth' ) ), 0, 32 );
+		$key    = 'easyformly_dns_' . substr( hash_hmac( 'sha256', $domain, wp_salt( 'auth' ) ), 0, 32 );
 		$cached = get_transient( $key );
 		if ( in_array( $cached, array( 'valid', 'invalid', 'unknown' ), true ) ) {
 			return $cached;

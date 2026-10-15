@@ -19,9 +19,9 @@ solo in questo file. Quando una decisione viene presa: si scrive la data e il mo
 | D5 | Disinstallazione | presa (già così) | Fase 2.3 |
 | D6 | Lock atomici in `wp_options` | presa | Fase 2.2, `WPDB_ALLOWLIST` |
 | D7 | Requisiti minimi | presa (già così) | |
-| D8 | Nomi dei dati | presa | |
+| D8 | Nomi dei dati | superata da D10 | |
 | D9 | Lingua delle stringhe sorgente | presa, fatta | Fase 5.3, `languages/easyformly-it_IT.po` |
-| D10 | Nuovo nome: EasyFormly | presa (default, da confermare) | |
+| D10 | Nuovo nome: EasyFormly | presa, fatta | |
 
 ## Prese
 
@@ -102,6 +102,8 @@ richieste concorrenti.
 migrazione.
 - Proposta: **nessuna rinomina**; si documentano così come sono (`docs/data-model.md`).
 - Decisione (13 ottobre 2026): nessuna rinomina.
+- Superata da D10 (15 ottobre 2026): la 1.0.0 non è mai andata in produzione, quindi i nomi diventano `easyformly_`
+  senza migrazione.
 
 **D9 — Lingua delle stringhe sorgente.** EasyRankly vuole codice, commenti e stringhe sorgente in inglese, tradotte
 con il text domain. In EasyFormly codice e commenti sono in inglese, ma le stringhe dell'interfaccia sono scritte in
@@ -115,31 +117,17 @@ italiano dentro `__()`.
   oggi, in un PR a parte (Fase 5.3). Fino ad allora le nuove stringhe seguono quelle vicine.
 
 **D10 — Nuovo nome: EasyFormly.** Il 15 ottobre 2026 Enthony ha chiesto di rinominare il plugin "EasyFormly".
-- Problema: i siti in produzione hanno la 1.0.0 come `easycontact/easycontact.php`, con dati, shortcode nelle pagine e
-  HTML del modulo nelle cache delle pagine che usano i nomi `easycontact`.
-- Scelta: cambia tutto ciò che è nome del plugin o del codice; resta tutto ciò che WordPress salva o che esce dal
-  PHP verso pagine già pubblicate.
-  - Cambiano: nome mostrato (intestazione, menu, titoli delle schermate, guida privacy), cartella e file principale
-    (`easyformly/easyformly.php`, zip `easyformly.zip`), text domain `easyformly` e file in `languages/`, namespace
-    PHP `EasyFormly` (anche per le librerie incluse), costanti `EASYFORMLY_*`, pacchetti Composer, documenti.
-  - Restano `easycontact` (D8 e compatibilità): post type, tassonomia, option, meta, transient, gruppo di cache,
-    eventi cron, route REST `easycontact/v1`, azioni di `admin-post.php` e dei nonce, nomi dei campi, classi CSS,
-    attributi `data-`, oggetti JS, handle degli asset, slug delle schermate admin, ID di export ed erase privacy.
-    Le pagine in cache mandano ancora questi nomi, e i temi possono avere CSS sulle classi.
-  - Shortcode: `[easyformly]` è quello mostrato nell'editor; `[easycontact]` resta valido, senza scadenza.
-- Passaggio dalla 1.0.0: EasyFormly è un plugin con un'altra cartella, quindi si installa accanto e si attiva.
-  - L'attivazione disattiva EasyContact sullo stesso sito (o sulla rete, se entrambi sono attivi sulla rete); se i
-    due restano attivi insieme, EasyFormly non registra niente e lascia servire EasyContact finché un amministratore
-    apre la bacheca, che lo disattiva. La disattivazione di EasyContact toglie la versione: la richiesta dopo rifà
-    il setup e riprende i tentativi di consegna.
-  - Eliminare EasyContact da Plugin esegue il suo `uninstall.php`, che legge le stesse impostazioni: con
-    EasyFormly attivo, in quella richiesta "elimina i dati alla disinstallazione" risulta spento, quindi moduli,
-    invii e impostazioni restano. I dati tecnici che toglie (versione, lock, ricevute, cache dei domini) li ricrea
-    il setup. Test: `tests/RenameTest.php`, `tests/UninstallTest.php`.
-- Repository: dal 15 ottobre 2026 il lavoro continua in `enthonysclafani/easyformly`, creato da Enthony, con la storia
-  completa di `main` e `Refactory` copiata da `enthonysclafani/easycontact` senza riscriverla (PR #1–#25 sono là).
-- Decisione (15 ottobre 2026): default scelto da Claude sulla richiesta di Enthony, da confermare nella pull
-  request della rinomina.
+- Dato: EasyContact 1.0.0 non è mai andato in produzione, quindi non esistono siti con dati da conservare.
+- Decisione (15 ottobre 2026, Enthony: "Non mi interessa alcuna migrazione"): tutto si chiama `easyformly`, senza
+  migrazione né compatibilità con i nomi `easycontact`. Cambiano nome mostrato, cartella e file principale
+  (`easyformly/easyformly.php`), text domain, namespace PHP `EasyFormly` (anche per le librerie incluse), costanti
+  `EASYFORMLY_*`, e anche i nomi dei dati e quelli che escono dal PHP: post type, tassonomia, option, meta,
+  transient, gruppo di cache, evento cron, route REST `easyformly/v1`, azioni, nonce, shortcode `[easyformly]`,
+  classi CSS, attributi `data-` e oggetti JS. Spariscono anche gli eventi cron della 1.0.0 che il setup toglieva.
+- I nomi `easycontact_` che restano nei documenti storici (`docs/piano-standard.md`, `docs/analisi-easyrankly.md` e
+  le decisioni D1–D8 qui sopra) descrivono la 1.0.0: oggi sono `easyformly_`.
+- Repository: il lavoro continua in `enthonysclafani/easyformly`, con la storia completa di `main` e `Refactory`
+  copiata da `enthonysclafani/easycontact`, che Enthony ha chiesto di archiviare.
 
 ## Aperte
 

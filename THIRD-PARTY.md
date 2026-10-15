@@ -50,7 +50,7 @@ Administrators can manually synchronize from the corresponding moving
 `main`/`master` URLs in Settings. Only those fixed HTTPS sources are contacted;
 no form fields or submitted email addresses are sent. Both responses must pass
 validation before the complete combined snapshot is saved in a non-autoloaded
-WordPress option, `easycontact_disposable_domains`. The latest successful snapshot stays
+WordPress option, `easyformly_disposable_domains`. The latest successful snapshot stays
 active without expiring; failures retain it, and upstream removals are respected
 when both current sources stop listing a domain. There is no synchronization
 cron, automatic check on activation or settings visits, or visitor-time HTTP.

@@ -1,12 +1,12 @@
 ( () => {
 	'use strict';
-	const editor = document.getElementById( 'easycontact-template' );
-	document.querySelectorAll( '[data-easycontact-insert]' ).forEach( ( button ) => {
+	const editor = document.getElementById( 'easyformly-template' );
+	document.querySelectorAll( '[data-easyformly-insert]' ).forEach( ( button ) => {
 		button.addEventListener( 'click', () => {
 			if ( ! editor ) {
 				return;
 			}
-			const type = button.dataset.easycontactInsert;
+			const type = button.dataset.easyformlyInsert;
 			let suffix = 1;
 			while ( editor.value.includes( `${ type }_${ suffix } ` ) ) {
 				suffix++;
@@ -14,7 +14,7 @@
 			const required = [ 'checkbox', 'number' ].includes( type ) ? '' : '*';
 			let options = '';
 			if ( type === 'select' ) {
-				options = ` "${ window.easycontactAdmin.optionOne }" "${ window.easycontactAdmin.optionTwo }"`;
+				options = ` "${ window.easyformlyAdmin.optionOne }" "${ window.easyformlyAdmin.optionTwo }"`;
 			}
 			if ( type === 'number' ) {
 				options = ' min:0 step:1';
@@ -27,10 +27,10 @@
 			editor.dispatchEvent( new Event( 'input', { bubbles: true } ) );
 		} );
 	} );
-	const rules = document.getElementById( 'easycontact-rules' );
+	const rules = document.getElementById( 'easyformly-rules' );
 	let index = Date.now();
-	document.getElementById( 'easycontact-add-rule' )?.addEventListener( 'click', () => {
-		const template = document.getElementById( 'easycontact-rule-template' );
+	document.getElementById( 'easyformly-add-rule' )?.addEventListener( 'click', () => {
+		const template = document.getElementById( 'easyformly-rule-template' );
 		if ( ! template || ! rules || rules.children.length >= 80 ) {
 			return;
 		}
@@ -43,7 +43,7 @@
 		row.querySelector( 'select' ).focus();
 	} );
 	rules?.addEventListener( 'click', ( event ) => {
-		const button = event.target.closest( '[data-easycontact-remove]' );
+		const button = event.target.closest( '[data-easyformly-remove]' );
 		if ( button ) {
 			button.closest( 'tr' ).remove();
 		}

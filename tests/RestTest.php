@@ -41,20 +41,20 @@ class RestTest extends TestCase {
 		);
 		$other     = self::factory()->post->create();
 
-		$response = rest_do_request( new WP_REST_Request( 'GET', '/easycontact/v1/forms/' . $published . '/token' ) );
+		$response = rest_do_request( new WP_REST_Request( 'GET', '/easyformly/v1/forms/' . $published . '/token' ) );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'no-store, private, max-age=0', $response->get_headers()['Cache-Control'] );
 		$this->assertSame( array( 'nonce', 'ticket', 'expires', 'honeypot', 'clock' ), array_keys( $response->get_data() ) );
 
 		foreach ( array( $draft, $other, 999999 ) as $id ) {
-			$this->assertSame( 404, rest_do_request( new WP_REST_Request( 'GET', '/easycontact/v1/forms/' . $id . '/token' ) )->get_status(), 'No token for post ' . $id );
+			$this->assertSame( 404, rest_do_request( new WP_REST_Request( 'GET', '/easyformly/v1/forms/' . $id . '/token' ) )->get_status(), 'No token for post ' . $id );
 		}
 	}
 
 	public function test_submission_refuses_missing_tokens_and_oversized_bodies(): void {
 		$id = $this->form( $this->definition() );
 
-		$request = new WP_REST_Request( 'POST', '/easycontact/v1/forms/' . $id . '/submit' );
+		$request = new WP_REST_Request( 'POST', '/easyformly/v1/forms/' . $id . '/submit' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		$request->set_body( (string) wp_json_encode( array( 'fields' => $this->values() ) ) );
 		$this->assertSame( 403, rest_do_request( $request )->get_status(), 'Without nonce and ticket the session is expired' );
@@ -68,18 +68,18 @@ class RestTest extends TestCase {
 		$id     = $this->form( $this->definition() );
 		$routes = rest_get_server()->get_routes();
 		foreach ( array( 'token', 'submit' ) as $name ) {
-			$endpoint = $routes[ '/easycontact/v1/forms/(?P<id>\\d+)/' . $name ][0];
+			$endpoint = $routes[ '/easyformly/v1/forms/(?P<id>\\d+)/' . $name ][0];
 			$this->assertSame( '__return_true', $endpoint['permission_callback'], 'Public by design: forms are shown to anonymous visitors' );
 			$this->assertSame( 'integer', $endpoint['args']['id']['type'] );
 		}
 
-		$this->assertSame( 400, rest_do_request( new WP_REST_Request( 'GET', '/easycontact/v1/forms/0/token' ) )->get_status(), 'Form IDs start at 1' );
-		$token = new WP_REST_Request( 'GET', '/easycontact/v1/forms/' . $id . '/token' );
+		$this->assertSame( 400, rest_do_request( new WP_REST_Request( 'GET', '/easyformly/v1/forms/0/token' ) )->get_status(), 'Form IDs start at 1' );
+		$token = new WP_REST_Request( 'GET', '/easyformly/v1/forms/' . $id . '/token' );
 		$token->set_query_params( array( 'clock' => str_repeat( '1', 201 ) ) );
 		$this->assertSame( 400, rest_do_request( $token )->get_status(), 'An oversized clock is refused' );
-		$this->assertSame( 2048, $routes['/easycontact/v1/forms/(?P<id>\\d+)/submit'][0]['args']['captcha']['maxLength'], 'The CAPTCHA token has the same limit as Delivery::captcha()' );
+		$this->assertSame( 2048, $routes['/easyformly/v1/forms/(?P<id>\\d+)/submit'][0]['args']['captcha']['maxLength'], 'The CAPTCHA token has the same limit as Delivery::captcha()' );
 
-		$request = new WP_REST_Request( 'POST', '/easycontact/v1/forms/' . $id . '/submit' );
+		$request = new WP_REST_Request( 'POST', '/easyformly/v1/forms/' . $id . '/submit' );
 		$request->set_header( 'Content-Type', 'application/json' );
 		foreach ( array(
 			'nonce'    => array( 'a' ),
@@ -98,7 +98,7 @@ class RestTest extends TestCase {
 	public function test_forms_and_entries_are_not_exposed_by_core_routes(): void {
 		$routes = rest_get_server()->get_routes();
 		foreach ( array_keys( $routes ) as $route ) {
-			$this->assertStringNotContainsString( 'easycontact_', $route, 'No core route for the private post types' );
+			$this->assertStringNotContainsString( 'easyformly_', $route, 'No core route for the private post types' );
 		}
 		$this->assertFalse( get_post_type_object( Plugin::FORM )->show_in_rest );
 		$this->assertFalse( get_post_type_object( Plugin::ENTRY )->show_in_rest );

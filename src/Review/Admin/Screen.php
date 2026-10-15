@@ -32,13 +32,13 @@ final class Screen {
 		add_action(
 			'add_meta_boxes',
 			static function (): void {
-				add_meta_box( 'easycontact-review', __( 'Anti-spam category', 'easyformly' ), array( self::class, 'box' ), Plugin::ENTRY, 'side', 'high' );
+				add_meta_box( 'easyformly-review', __( 'Anti-spam category', 'easyformly' ), array( self::class, 'box' ), Plugin::ENTRY, 'side', 'high' );
 			}
 		);
 		add_filter( 'bulk_actions-edit-' . Plugin::ENTRY, array( self::class, 'bulk_actions' ) );
 		add_filter( 'handle_bulk_actions-edit-' . Plugin::ENTRY, array( self::class, 'bulk' ), 10, 3 );
-		add_action( 'admin_post_easycontact_classify', array( self::class, 'action' ) );
-		add_action( 'admin_post_easycontact_approve', array( self::class, 'action' ) );
+		add_action( 'admin_post_easyformly_classify', array( self::class, 'action' ) );
+		add_action( 'admin_post_easyformly_approve', array( self::class, 'action' ) );
 		add_action( 'admin_notices', array( self::class, 'notice' ) );
 	}
 
@@ -49,7 +49,7 @@ final class Screen {
 	 * @return array<string, string>
 	 */
 	public static function columns( array $columns ): array {
-		$columns['easycontact-review'] = __( 'Classification', 'easyformly' );
+		$columns['easyformly-review'] = __( 'Classification', 'easyformly' );
 		return $columns;
 	}
 
@@ -60,12 +60,12 @@ final class Screen {
 	 * @param int    $id     Entry ID.
 	 */
 	public static function column( string $column, int $id ): void {
-		if ( 'easycontact-review' !== $column ) {
+		if ( 'easyformly-review' !== $column ) {
 			return;
 		}
 		$category = Review::category( $id );
-		echo '<span class="easycontact-badge easycontact-badge-' . esc_attr( '' !== $category ? $category : 'unknown' ) . '">' . esc_html( Review::labels()[ $category ] ?? __( 'To be classified', 'easyformly' ) ) . '</span>';
-		$record = get_post_meta( $id, '_easycontact_review', true );
+		echo '<span class="easyformly-badge easyformly-badge-' . esc_attr( '' !== $category ? $category : 'unknown' ) . '">' . esc_html( Review::labels()[ $category ] ?? __( 'To be classified', 'easyformly' ) ) . '</span>';
+		$record = get_post_meta( $id, '_easyformly_review', true );
 		if ( is_array( $record ) ) {
 			echo '<br><small>' . esc_html( 'manual' === $record['source'] ? __( 'Manual review', 'easyformly' ) : __( 'Automatic check', 'easyformly' ) ) . '</small>';
 		}
@@ -82,9 +82,9 @@ final class Screen {
 	 */
 	public static function views( array $views ): array {
 		unset( $views['private'] );
-		$current = isset( $_GET['easycontact_review'] ) && is_string( $_GET['easycontact_review'] ) ? sanitize_key( wp_unslash( $_GET['easycontact_review'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only archive filter.
+		$current = isset( $_GET['easyformly_review'] ) && is_string( $_GET['easyformly_review'] ) ? sanitize_key( wp_unslash( $_GET['easyformly_review'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only archive filter.
 		foreach ( Review::labels() as $slug => $label ) {
-			$query                           = new WP_Query(
+			$query                          = new WP_Query(
 				array(
 					'post_type'      => Plugin::ENTRY,
 					'post_status'    => 'private',
@@ -99,11 +99,11 @@ final class Screen {
 					),
 				)
 			); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Three bounded private archive counts.
-			$views[ 'easycontact-' . $slug ] = '<a href="' . esc_url(
+			$views[ 'easyformly-' . $slug ] = '<a href="' . esc_url(
 				add_query_arg(
 					array(
-						'post_type'          => Plugin::ENTRY,
-						'easycontact_review' => $slug,
+						'post_type'         => Plugin::ENTRY,
+						'easyformly_review' => $slug,
 					),
 					admin_url( 'edit.php' )
 				)
@@ -124,11 +124,11 @@ final class Screen {
 			)
 		); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- Private count for entries predating classification.
 		if ( $unclassified->found_posts || 'unclassified' === $current ) {
-			$views['easycontact-unclassified'] = '<a href="' . esc_url(
+			$views['easyformly-unclassified'] = '<a href="' . esc_url(
 				add_query_arg(
 					array(
-						'post_type'          => Plugin::ENTRY,
-						'easycontact_review' => 'unclassified',
+						'post_type'         => Plugin::ENTRY,
+						'easyformly_review' => 'unclassified',
 					),
 					admin_url( 'edit.php' )
 				)
@@ -149,7 +149,7 @@ final class Screen {
 		if ( ! is_admin() || ! $query->is_main_query() || Plugin::ENTRY !== $query->get( 'post_type' ) ) {
 			return;
 		}
-		$category = isset( $_GET['easycontact_review'] ) && is_string( $_GET['easycontact_review'] ) ? sanitize_key( wp_unslash( $_GET['easycontact_review'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only archive filter.
+		$category = isset( $_GET['easyformly_review'] ) && is_string( $_GET['easyformly_review'] ) ? sanitize_key( wp_unslash( $_GET['easyformly_review'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only archive filter.
 		if ( isset( Review::labels()[ $category ] ) || 'unclassified' === $category ) {
 			$tax   = $query->get( 'tax_query' );
 			$tax   = is_array( $tax ) ? $tax : array();
@@ -172,17 +172,17 @@ final class Screen {
 	 */
 	public static function box( WP_Post $post ): void {
 		$category = Review::category( $post->ID );
-		wp_nonce_field( 'easycontact_review_' . $post->ID, 'easycontact_review_nonce', false );
-		echo '<input type="hidden" name="easycontact_review_entry" value="' . esc_attr( (string) $post->ID ) . '">';
-		echo '<p><label for="easycontact-review-status">' . esc_html__( 'Category', 'easyformly' ) . '</label><br><select id="easycontact-review-status" name="easycontact_review_status">';
+		wp_nonce_field( 'easyformly_review_' . $post->ID, 'easyformly_review_nonce', false );
+		echo '<input type="hidden" name="easyformly_review_entry" value="' . esc_attr( (string) $post->ID ) . '">';
+		echo '<p><label for="easyformly-review-status">' . esc_html__( 'Category', 'easyformly' ) . '</label><br><select id="easyformly-review-status" name="easyformly_review_status">';
 		if ( ! $category ) {
 			echo '<option value="">' . esc_html__( 'To be classified', 'easyformly' ) . '</option>';
 		}
 		foreach ( Review::labels() as $slug => $label ) {
 			echo '<option value="' . esc_attr( $slug ) . '" ' . selected( $category, $slug, false ) . '>' . esc_html( $label ) . '</option>';
 		}
-		echo '</select></p><p><button class="button" type="submit" name="action" value="easycontact_classify" formaction="' . esc_url( admin_url( 'admin-post.php' ) ) . '">' . esc_html__( 'Update category', 'easyformly' ) . '</button></p>';
-		$assessment = get_post_meta( $post->ID, '_easycontact_antispam', true );
+		echo '</select></p><p><button class="button" type="submit" name="action" value="easyformly_classify" formaction="' . esc_url( admin_url( 'admin-post.php' ) ) . '">' . esc_html__( 'Update category', 'easyformly' ) . '</button></p>';
+		$assessment = get_post_meta( $post->ID, '_easyformly_antispam', true );
 		if ( is_array( $assessment ) ) {
 			/* translators: 1: anti-spam score, 2: protection level. */
 			echo '<p>' . esc_html( sprintf( __( 'Score: %1$d/100 · Level %2$d', 'easyformly' ), $assessment['score'], $assessment['level'] ) ) . '</p>';
@@ -198,12 +198,12 @@ final class Screen {
 			}
 			echo '</ul>';
 		}
-		$record = get_post_meta( $post->ID, '_easycontact_review', true );
+		$record = get_post_meta( $post->ID, '_easyformly_review', true );
 		if ( is_array( $record ) && 'manual' === $record['source'] ) {
 			echo '<p>' . esc_html__( 'Manual review takes precedence over the automatic check.', 'easyformly' ) . '</p>';
 		}
 		if ( Review::requires_approval( $post->ID ) ) {
-			echo '<p>' . esc_html__( 'Delivery held. Changing the category sends no notifications.', 'easyformly' ) . '</p><p><button class="button button-primary" type="submit" name="action" value="easycontact_approve" formaction="' . esc_url( admin_url( 'admin-post.php' ) ) . '">' . esc_html__( 'Approve and send', 'easyformly' ) . '</button></p>';
+			echo '<p>' . esc_html__( 'Delivery held. Changing the category sends no notifications.', 'easyformly' ) . '</p><p><button class="button button-primary" type="submit" name="action" value="easyformly_approve" formaction="' . esc_url( admin_url( 'admin-post.php' ) ) . '">' . esc_html__( 'Approve and send', 'easyformly' ) . '</button></p>';
 		}
 	}
 
@@ -216,7 +216,7 @@ final class Screen {
 	public static function bulk_actions( array $actions ): array {
 		foreach ( Review::labels() as $slug => $label ) {
 			/* translators: %s: classification label. */
-			$actions[ 'easycontact-classify-' . $slug ] = sprintf( __( 'Mark as %s', 'easyformly' ), $label );
+			$actions[ 'easyformly-classify-' . $slug ] = sprintf( __( 'Mark as %s', 'easyformly' ), $label );
 		}
 		return $actions;
 	}
@@ -229,8 +229,8 @@ final class Screen {
 	 * @param array<int|string> $ids      Selected entry IDs.
 	 */
 	public static function bulk( string $redirect, string $action, array $ids ): string {
-		$category = substr( $action, strlen( 'easycontact-classify-' ) );
-		if ( ! str_starts_with( $action, 'easycontact-classify-' ) || ! isset( Review::labels()[ $category ] ) ) {
+		$category = substr( $action, strlen( 'easyformly-classify-' ) );
+		if ( ! str_starts_with( $action, 'easyformly-classify-' ) || ! isset( Review::labels()[ $category ] ) ) {
 			return $redirect;
 		}
 		check_admin_referer( 'bulk-posts' );
@@ -251,17 +251,17 @@ final class Screen {
 	 * Handle the review box: change the category or approve the held delivery.
 	 */
 	public static function action(): void {
-		$id = isset( $_POST['easycontact_review_entry'] ) && is_scalar( $_POST['easycontact_review_entry'] ) ? absint( $_POST['easycontact_review_entry'] ) : 0;
+		$id = isset( $_POST['easyformly_review_entry'] ) && is_scalar( $_POST['easyformly_review_entry'] ) ? absint( $_POST['easyformly_review_entry'] ) : 0;
 		if ( ! current_user_can( 'manage_options' ) || ! $id || Plugin::ENTRY !== get_post_type( $id ) || 'private' !== get_post_status( $id ) ) {
 			wp_die( esc_html__( 'Submission not available.', 'easyformly' ), '', array( 'response' => 403 ) );
 		}
-		check_admin_referer( 'easycontact_review_' . $id, 'easycontact_review_nonce' );
+		check_admin_referer( 'easyformly_review_' . $id, 'easyformly_review_nonce' );
 		$action = isset( $_POST['action'] ) && is_string( $_POST['action'] ) ? sanitize_key( wp_unslash( $_POST['action'] ) ) : '';
-		if ( 'easycontact_approve' === $action ) {
+		if ( 'easyformly_approve' === $action ) {
 			$result  = Submission::retry( $id, true, false, true );
 			$message = __( 'Submission approved. Check the destination outcomes in the details.', 'easyformly' );
 		} else {
-			$category = isset( $_POST['easycontact_review_status'] ) && is_string( $_POST['easycontact_review_status'] ) ? sanitize_key( wp_unslash( $_POST['easycontact_review_status'] ) ) : '';
+			$category = isset( $_POST['easyformly_review_status'] ) && is_string( $_POST['easyformly_review_status'] ) ? sanitize_key( wp_unslash( $_POST['easyformly_review_status'] ) ) : '';
 			$result   = isset( Review::labels()[ $category ] ) ? Review::change( $id, $category ) : new WP_Error( 'category', __( 'Select a valid category.', 'easyformly' ) );
 			$message  = __( 'Category updated.', 'easyformly' );
 		}
@@ -278,7 +278,7 @@ final class Screen {
 	 */
 	private static function queue_notice( string $message, bool $error ): void {
 		set_transient(
-			'easycontact_review_notice_' . get_current_user_id(),
+			'easyformly_review_notice_' . get_current_user_id(),
 			array(
 				'message' => $message,
 				'error'   => $error,
@@ -294,7 +294,7 @@ final class Screen {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$key    = 'easycontact_review_notice_' . get_current_user_id();
+		$key    = 'easyformly_review_notice_' . get_current_user_id();
 		$notice = get_transient( $key );
 		if ( is_array( $notice ) ) {
 			echo '<div class="notice notice-' . ( $notice['error'] ? 'error' : 'success' ) . '"><p>' . esc_html( $notice['message'] ) . '</p></div>';

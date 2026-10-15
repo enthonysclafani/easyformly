@@ -1,49 +1,49 @@
-.easycontact-form {
+.easyformly-form {
 
 	max-width: 42rem;
 	font: inherit;
 }
 
-.easycontact-form *,
-.easycontact-form *::before,
-.easycontact-form *::after {
+.easyformly-form *,
+.easyformly-form *::before,
+.easyformly-form *::after {
 
 	box-sizing: border-box;
 }
 
-.easycontact-form .easycontact-field {
+.easyformly-form .easyformly-field {
 
 	margin-block: 0 1.25rem;
 }
 
-.easycontact-form .easycontact-row {
+.easyformly-form .easyformly-row {
 
 	display: flex;
 	gap: 1rem;
 	align-items: flex-start;
 }
 
-.easycontact-form .easycontact-row > .easycontact-field {
+.easyformly-form .easyformly-row > .easyformly-field {
 
 	flex: 1 1 0;
 	min-width: 0;
 	overflow-wrap: anywhere;
 }
 
-.easycontact-form label {
+.easyformly-form label {
 
 	display: block;
 	margin-block-end: 0.35rem;
 }
 
-.easycontact-form .easycontact-check input {
+.easyformly-form .easyformly-check input {
 
 	margin: 0.35rem 0 0;
 }
 
-.easycontact-form input:not([type="checkbox"]):not([type="hidden"]),
-.easycontact-form textarea,
-.easycontact-form select {
+.easyformly-form input:not([type="checkbox"]):not([type="hidden"]),
+.easyformly-form textarea,
+.easyformly-form select {
 
 	width: 100%;
 	padding: 0.65rem 0.75rem;
@@ -54,36 +54,36 @@
 	font: inherit;
 }
 
-.easycontact-form textarea {
+.easyformly-form textarea {
 
 	resize: vertical;
 }
 
-.easycontact-form .easycontact-phone {
+.easyformly-form .easyformly-phone {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-end;
 	gap: 0.5rem;
 }
 
-.easycontact-form .easycontact-phone-country {
+.easyformly-form .easyformly-phone-country {
 	flex: 1 1 12rem;
 	min-width: 0;
 }
 
-.easycontact-form .easycontact-phone > input {
+.easyformly-form .easyformly-phone > input {
 	flex: 1 1 10rem;
 	min-width: 0;
 	width: 0;
 }
 
-.easycontact-form .easycontact-phone .easycontact-country-search {
+.easyformly-form .easyformly-phone .easyformly-country-search {
 	margin-block-end: 0.35rem;
 	padding: 0.35rem 0.5rem;
 	font-size: 0.9em;
 }
 
-.easycontact-form button {
+.easyformly-form button {
 
 	padding: 0.65rem 1.15rem;
 	border: 1px solid currentcolor;
@@ -92,13 +92,13 @@
 	cursor: pointer;
 }
 
-.easycontact-form button:disabled {
+.easyformly-form button:disabled {
 
 	opacity: 0.6;
 	cursor: wait;
 }
 
-.easycontact-form .easycontact-check {
+.easyformly-form .easyformly-check {
 
 	display: grid;
 	grid-template-columns: 1.3rem 1fr;
@@ -106,7 +106,7 @@
 	align-items: start;
 }
 
-.easycontact-form .easycontact-error {
+.easyformly-form .easyformly-error {
 
 	display: block;
 	color: #a51b16;
@@ -114,30 +114,30 @@
 	font-size: 0.9em;
 }
 
-.easycontact-form .easycontact-check a,
-.easycontact-form .easycontact-check .easycontact-error {
+.easyformly-form .easyformly-check a,
+.easyformly-form .easyformly-check .easyformly-error {
 
 	grid-column: 2;
 }
 
-.easycontact-form .easycontact-result {
+.easyformly-form .easyformly-result {
 
 	margin-block-start: 1rem;
 }
 
-.easycontact-form .easycontact-error:empty,
-.easycontact-form .easycontact-result:empty,
-.easycontact-form [hidden] {
+.easyformly-form .easyformly-error:empty,
+.easyformly-form .easyformly-result:empty,
+.easyformly-form [hidden] {
 
 	display: none !important;
 }
 
-.easycontact-form [aria-invalid="true"] {
+.easyformly-form [aria-invalid="true"] {
 
 	border-color: #a51b16 !important;
 }
 
-.easycontact-form .easycontact-honeypot {
+.easyformly-form .easyformly-honeypot {
 
 	position: absolute;
 	width: 1px;
@@ -146,17 +146,17 @@
 	clip-path: inset(50%);
 }
 
-.easycontact-form [data-easycontact-captcha] {
+.easyformly-form [data-easyformly-captcha] {
 
 	margin-block: 0 1rem;
 }
 
-.easycontact-form :focus-visible {
+.easyformly-form :focus-visible {
 	outline: 2px solid currentcolor;
 	outline-offset: 2px;
 }
 
-.easycontact-preview-body {
+.easyformly-preview-body {
 	max-width: 42rem;
 	margin: 2rem auto;
 	padding: 0 1rem;
@@ -165,7 +165,7 @@
 
 @media (max-width: 600px) {
 
-	.easycontact-form .easycontact-row {
+	.easyformly-form .easyformly-row {
 
 		display: block;
 	}

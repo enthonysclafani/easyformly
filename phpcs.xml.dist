@@ -32,13 +32,11 @@
 		</properties>
 	</rule>
 
-	<!-- easycontact: names of 1.0.0 that are stored or sent outside PHP and are not renamed (D8, D10). -->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">
 				<element value="EasyFormly"/>
 				<element value="easyformly"/>
-				<element value="easycontact"/>
 			</property>
 		</properties>
 	</rule>

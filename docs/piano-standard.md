@@ -1,5 +1,8 @@
 # Piano: gli standard di EasyRankly in EasyFormly
 
+> Documento storico: i nomi `easycontact` qui sotto sono quelli della 1.0.0. Dal 15 ottobre 2026 il plugin si
+> chiama EasyFormly e tutti i nomi usano `easyformly` (D10).
+
 Obiettivo: portare in EasyFormly gli standard di qualità di EasyRankly (branch `Refactory` di
 `enthonysclafani/easyrankly`): stessi controlli automatici, stessa struttura, stessa disciplina sui dati,
 **zero tabelle custom e zero accessi diretti al database non motivati**.

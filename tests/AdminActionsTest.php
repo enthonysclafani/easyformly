@@ -62,7 +62,7 @@ class AdminActionsTest extends TestCase {
 		Plugin::register();
 		$actions = array();
 		foreach ( array_keys( $wp_filter ) as $hook ) {
-			if ( str_starts_with( $hook, 'admin_post_' ) && str_contains( $hook, 'easycontact' ) && has_action( $hook ) ) {
+			if ( str_starts_with( $hook, 'admin_post_' ) && str_contains( $hook, 'easyformly' ) && has_action( $hook ) ) {
 				$actions[] = $hook;
 			}
 		}
@@ -70,14 +70,14 @@ class AdminActionsTest extends TestCase {
 
 		$this->assertSame(
 			array(
-				'admin_post_easycontact_approve',
-				'admin_post_easycontact_classify',
-				'admin_post_easycontact_preview',
-				'admin_post_easycontact_retry',
+				'admin_post_easyformly_approve',
+				'admin_post_easyformly_classify',
+				'admin_post_easyformly_preview',
+				'admin_post_easyformly_retry',
 				// The public form submission without JavaScript, covered by SubmissionTest and RestTest.
-				'admin_post_easycontact_submit',
-				'admin_post_easycontact_sync_disposable_domains',
-				'admin_post_nopriv_easycontact_submit',
+				'admin_post_easyformly_submit',
+				'admin_post_easyformly_sync_disposable_domains',
+				'admin_post_nopriv_easyformly_submit',
 			),
 			$actions
 		);
@@ -90,17 +90,17 @@ class AdminActionsTest extends TestCase {
 		$entry = $this->entry_for_review();
 		$other = $this->entry_for_review();
 		$post  = array(
-			'action'                    => 'easycontact_classify',
-			'easycontact_review_entry'  => (string) $entry,
-			'easycontact_review_status' => 'spam',
+			'action'                   => 'easyformly_classify',
+			'easyformly_review_entry'  => (string) $entry,
+			'easyformly_review_status' => 'spam',
 		);
 
-		$this->assert_denied( array( Screen::class, 'action' ), $post, 'easycontact_review_' . $entry, 'easycontact_review_nonce', 'editor' );
-		$this->assert_denied( array( Screen::class, 'action' ), $post, '', 'easycontact_review_nonce' );
-		$this->assert_denied( array( Screen::class, 'action' ), $post, 'easycontact_review_' . $other, 'easycontact_review_nonce' );
+		$this->assert_denied( array( Screen::class, 'action' ), $post, 'easyformly_review_' . $entry, 'easyformly_review_nonce', 'editor' );
+		$this->assert_denied( array( Screen::class, 'action' ), $post, '', 'easyformly_review_nonce' );
+		$this->assert_denied( array( Screen::class, 'action' ), $post, 'easyformly_review_' . $other, 'easyformly_review_nonce' );
 		$this->assertSame( 'accepted', Review::category( $entry ), 'Refused requests change nothing' );
 
-		$this->assert_redirect( array( Screen::class, 'action' ), $post, 'easycontact_review_' . $entry, 'easycontact_review_nonce', 'post.php?post=' . $entry . '&action=edit' );
+		$this->assert_redirect( array( Screen::class, 'action' ), $post, 'easyformly_review_' . $entry, 'easyformly_review_nonce', 'post.php?post=' . $entry . '&action=edit' );
 		$this->assertSame( 'spam', Review::category( $entry ) );
 	}
 
@@ -112,16 +112,16 @@ class AdminActionsTest extends TestCase {
 		$before = $this->calls['mail'];
 		$this->assertTrue( Review::held( $entry ), 'Fixture entry is held as spam' );
 		$post = array(
-			'action'                   => 'easycontact_approve',
-			'easycontact_review_entry' => (string) $entry,
+			'action'                  => 'easyformly_approve',
+			'easyformly_review_entry' => (string) $entry,
 		);
 
-		$this->assert_denied( array( Screen::class, 'action' ), $post, 'easycontact_review_' . $entry, 'easycontact_review_nonce', 'editor' );
-		$this->assert_denied( array( Screen::class, 'action' ), $post, '', 'easycontact_review_nonce' );
+		$this->assert_denied( array( Screen::class, 'action' ), $post, 'easyformly_review_' . $entry, 'easyformly_review_nonce', 'editor' );
+		$this->assert_denied( array( Screen::class, 'action' ), $post, '', 'easyformly_review_nonce' );
 		$this->assertTrue( Review::held( $entry ), 'Refused approvals release nothing' );
 		$this->assertSame( $before, $this->calls['mail'], 'Refused approvals deliver nothing' );
 
-		$this->assert_redirect( array( Screen::class, 'action' ), $post, 'easycontact_review_' . $entry, 'easycontact_review_nonce', 'post.php?post=' . $entry . '&action=edit' );
+		$this->assert_redirect( array( Screen::class, 'action' ), $post, 'easyformly_review_' . $entry, 'easyformly_review_nonce', 'post.php?post=' . $entry . '&action=edit' );
 		$this->assertFalse( Review::held( $entry ), 'Approval releases the entry' );
 		$this->assertSame( $before + 1, $this->calls['mail'], 'Approval delivers the email' );
 	}
@@ -140,15 +140,15 @@ class AdminActionsTest extends TestCase {
 		);
 		$this->slack_code = 200;
 		$before           = $this->calls['slack'];
-		$post             = array( 'easycontact_retry_entry' => (string) $entry );
+		$post             = array( 'easyformly_retry_entry' => (string) $entry );
 
-		$this->assert_denied( array( EntryScreen::class, 'retry' ), $post, 'easycontact_retry_' . $entry, 'easycontact_retry_nonce', 'editor' );
-		$this->assert_denied( array( EntryScreen::class, 'retry' ), $post, '', 'easycontact_retry_nonce' );
-		$this->assert_denied( array( EntryScreen::class, 'retry' ), $post, 'easycontact_review_' . $entry, 'easycontact_retry_nonce' );
+		$this->assert_denied( array( EntryScreen::class, 'retry' ), $post, 'easyformly_retry_' . $entry, 'easyformly_retry_nonce', 'editor' );
+		$this->assert_denied( array( EntryScreen::class, 'retry' ), $post, '', 'easyformly_retry_nonce' );
+		$this->assert_denied( array( EntryScreen::class, 'retry' ), $post, 'easyformly_review_' . $entry, 'easyformly_retry_nonce' );
 		$this->assertSame( $before, $this->calls['slack'], 'Refused retries deliver nothing' );
-		$this->assertNotFalse( wp_next_scheduled( 'easycontact_retry_delivery', array( $entry ) ), 'Refused retries keep the scheduled attempt' );
+		$this->assertNotFalse( wp_next_scheduled( 'easyformly_retry_delivery', array( $entry ) ), 'Refused retries keep the scheduled attempt' );
 
-		$this->assert_redirect( array( EntryScreen::class, 'retry' ), $post, 'easycontact_retry_' . $entry, 'easycontact_retry_nonce', 'post.php?post=' . $entry . '&action=edit' );
+		$this->assert_redirect( array( EntryScreen::class, 'retry' ), $post, 'easyformly_retry_' . $entry, 'easyformly_retry_nonce', 'post.php?post=' . $entry . '&action=edit' );
 		$this->assertSame( $before + 1, $this->calls['slack'], 'The retry delivers the failed destination' );
 	}
 
@@ -160,10 +160,10 @@ class AdminActionsTest extends TestCase {
 		$other = $this->form( $this->definition() );
 		$get   = array( 'id' => (string) $form );
 
-		$this->assert_denied( array( Editor::class, 'preview' ), $get, 'easycontact_preview_' . $form, '_wpnonce', 'editor', 'GET' );
+		$this->assert_denied( array( Editor::class, 'preview' ), $get, 'easyformly_preview_' . $form, '_wpnonce', 'editor', 'GET' );
 		$this->assert_denied( array( Editor::class, 'preview' ), $get, '', '_wpnonce', 'administrator', 'GET' );
-		$this->assert_denied( array( Editor::class, 'preview' ), $get, 'easycontact_preview_' . $other, '_wpnonce', 'administrator', 'GET' );
-		$this->assert_denied( array( Editor::class, 'preview' ), array( 'id' => (string) $this->entry_for_review() ), 'easycontact_preview_' . $form, '_wpnonce', 'administrator', 'GET' );
+		$this->assert_denied( array( Editor::class, 'preview' ), $get, 'easyformly_preview_' . $other, '_wpnonce', 'administrator', 'GET' );
+		$this->assert_denied( array( Editor::class, 'preview' ), array( 'id' => (string) $this->entry_for_review() ), 'easyformly_preview_' . $form, '_wpnonce', 'administrator', 'GET' );
 
 		// The preview ends with exit: stop it when it reads the charset for its headers, after every check.
 		add_filter(
@@ -172,14 +172,14 @@ class AdminActionsTest extends TestCase {
 				throw new RuntimeException( 'allowed' );
 			}
 		);
-		$this->assertSame( 'allowed', $this->run_handler( array( Editor::class, 'preview' ), $get, 'easycontact_preview_' . $form, '_wpnonce', 'administrator', 'GET' ), 'An administrator with the nonce of the form opens the preview' );
+		$this->assertSame( 'allowed', $this->run_handler( array( Editor::class, 'preview' ), $get, 'easyformly_preview_' . $form, '_wpnonce', 'administrator', 'GET' ), 'An administrator with the nonce of the form opens the preview' );
 	}
 
 	/**
 	 * The list synchronization needs an administrator, POST and its nonce; DisposableDomainsTest covers the rest.
 	 */
 	public function test_synchronization_refuses_editors(): void {
-		$this->assert_denied( array( Page::class, 'sync_disposable_domains' ), array(), 'easycontact_sync_disposable_domains', '_wpnonce', 'editor' );
+		$this->assert_denied( array( Page::class, 'sync_disposable_domains' ), array(), 'easyformly_sync_disposable_domains', '_wpnonce', 'editor' );
 	}
 
 	/**

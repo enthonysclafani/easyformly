@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
  * The cursors live in one non-autoloaded option, so a page without a form never reads it.
  */
 final class Maintenance {
-	public const OPTION = 'easycontact_maintenance';
+	public const OPTION = 'easyformly_maintenance';
 
 	/**
 	 * Seconds between two complete runs.

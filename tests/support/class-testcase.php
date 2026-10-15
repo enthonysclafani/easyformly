@@ -69,7 +69,7 @@ abstract class TestCase extends WP_UnitTestCase {
 		);
 		add_filter( 'pre_http_request', array( $this, 'intercept_http' ), 10, 3 );
 		update_option( Settings::OPTION, array_merge( Settings::defaults(), array( 'mailerlite_token' => 'fixture-only' ) ), false );
-		$GLOBALS['easycontact_test_dns'] = array();
+		$GLOBALS['easyformly_test_dns'] = array();
 		// The parsed list is kept per request in a static property: start every test without it.
 		( new \ReflectionProperty( DisposableDomains::class, 'lists' ) )->setValue( null, array() );
 	}
@@ -82,8 +82,8 @@ abstract class TestCase extends WP_UnitTestCase {
 		// A rendered form enqueues its assets: the next test starts without them. The registries
 		// stay, because rebuilding them needs built core files that the 6.4 test checkout lacks.
 		$queued = array(
-			'wp_scripts' => array( 'easycontact-frontend', 'easycontact-turnstile', 'easycontact-admin' ),
-			'wp_styles'  => array( 'easycontact-frontend', 'easycontact-admin' ),
+			'wp_scripts' => array( 'easyformly-frontend', 'easyformly-turnstile', 'easyformly-admin' ),
+			'wp_styles'  => array( 'easyformly-frontend', 'easyformly-admin' ),
 		);
 		foreach ( $queued as $registry => $handles ) {
 			if ( $GLOBALS[ $registry ] ?? null ) {
@@ -176,7 +176,7 @@ abstract class TestCase extends WP_UnitTestCase {
 				'post_title'  => 'EasyFormly test form',
 			)
 		);
-		update_post_meta( $id, '_easycontact_definition', wp_slash( $definition ) );
+		update_post_meta( $id, '_easyformly_definition', wp_slash( $definition ) );
 		return $id;
 	}
 

@@ -46,7 +46,7 @@ final class Delivery {
 		);
 		$body     = ! is_wp_error( $response ) ? json_decode( wp_remote_retrieve_body( $response ), true ) : null;
 		$hostname = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
-		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) || ! is_array( $body ) || true !== ( $body['success'] ?? false ) || ! is_string( $body['hostname'] ?? null ) || strtolower( $body['hostname'] ) !== $hostname || ( $body['action'] ?? '' ) !== 'easycontact_form_' . $form_id ) {
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) || ! is_array( $body ) || true !== ( $body['success'] ?? false ) || ! is_string( $body['hostname'] ?? null ) || strtolower( $body['hostname'] ) !== $hostname || ( $body['action'] ?? '' ) !== 'easyformly_form_' . $form_id ) {
 			return new WP_Error( 'captcha', __( 'The CAPTCHA check failed. Try again.', 'easyformly' ), array( 'status' => 422 ) );
 		}
 		return true;

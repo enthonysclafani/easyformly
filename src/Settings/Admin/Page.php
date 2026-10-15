@@ -29,7 +29,7 @@ final class Page {
 	public static function boot(): void {
 		add_action( 'admin_menu', array( self::class, 'menu' ) );
 		add_action( 'admin_init', array( self::class, 'settings' ) );
-		add_action( 'admin_post_easycontact_sync_disposable_domains', array( self::class, 'sync_disposable_domains' ) );
+		add_action( 'admin_post_easyformly_sync_disposable_domains', array( self::class, 'sync_disposable_domains' ) );
 	}
 
 	/**
@@ -38,7 +38,7 @@ final class Page {
 	 * @return void
 	 */
 	public static function menu(): void {
-		add_submenu_page( 'edit.php?post_type=' . Plugin::FORM, __( 'Settings', 'easyformly' ), __( 'Settings', 'easyformly' ), 'manage_options', 'easycontact-settings', array( self::class, 'settings_page' ) );
+		add_submenu_page( 'edit.php?post_type=' . Plugin::FORM, __( 'Settings', 'easyformly' ), __( 'Settings', 'easyformly' ), 'manage_options', 'easyformly-settings', array( self::class, 'settings_page' ) );
 	}
 
 	/**
@@ -48,7 +48,7 @@ final class Page {
 	 */
 	public static function settings(): void {
 		register_setting(
-			'easycontact_settings_group',
+			'easyformly_settings_group',
 			Settings::OPTION,
 			array(
 				'type'              => 'object',
@@ -66,7 +66,7 @@ final class Page {
 			'captcha'      => 'CAPTCHA · Cloudflare Turnstile',
 			'uninstall'    => __( 'Uninstall', 'easyformly' ),
 		) as $section => $title ) {
-			add_settings_section( 'easycontact-' . $section, $title, '__return_false', 'easycontact-settings' );
+			add_settings_section( 'easyformly-' . $section, $title, '__return_false', 'easyformly-settings' );
 		}
 		$items = array(
 			'antispam_level'      => array( 'antispam', __( 'Default level', 'easyformly' ), 'level', __( 'Recommended: 2 — Balanced. Existing forms keep level 1 until it is changed in their options.', 'easyformly' ) ),
@@ -88,16 +88,16 @@ final class Page {
 		);
 		foreach ( $items as $key => $item ) {
 			add_settings_field(
-				'easycontact-' . $key,
+				'easyformly-' . $key,
 				$item[1],
 				array( self::class, 'setting_field' ),
-				'easycontact-settings',
-				'easycontact-' . $item[0],
+				'easyformly-settings',
+				'easyformly-' . $item[0],
 				array(
 					'key'       => $key,
 					'type'      => $item[2],
 					'help'      => $item[3],
-					'label_for' => 'disposable' === $item[2] ? '' : 'easycontact-setting-' . $key,
+					'label_for' => 'disposable' === $item[2] ? '' : 'easyformly-setting-' . $key,
 				)
 			);
 		}
@@ -117,18 +117,18 @@ final class Page {
 		if ( 'disposable' === $type ) {
 			$status = DisposableDomains::status();
 			/* translators: %s: number of domains. */
-			echo '<div id="easycontact-disposable-domains"><p><strong>' . esc_html( sprintf( __( '%s domains in the local list', 'easyformly' ), number_format_i18n( $status['count'] ) ) ) . '</strong></p>';
+			echo '<div id="easyformly-disposable-domains"><p><strong>' . esc_html( sprintf( __( '%s domains in the local list', 'easyformly' ), number_format_i18n( $status['count'] ) ) ) . '</strong></p>';
 			/* translators: %s: date and time of the synchronization, or date of the bundled snapshot. */
 			$label = $status['synced'] ? __( 'Last synchronization: %s', 'easyformly' ) : __( 'Copy included in the plugin, updated on %s', 'easyformly' );
 			echo '<p>' . esc_html( sprintf( $label, wp_date( get_option( 'date_format' ) . ( $status['synced'] ? ' ' . get_option( 'time_format' ) : '' ), $status['updated_at'] ) ) ) . '</p><ul>';
 			foreach ( DisposableDomains::sources() as $source ) {
 				echo '<li><a href="' . esc_url( $source['project'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $source['name'] ) . '</a></li>';
 			}
-			echo '</ul><p><button type="submit" class="button" id="easycontact-setting-disposable_domains" form="easycontact-disposable-sync">' . esc_html__( 'Synchronize list', 'easyformly' ) . '</button></p><p class="description">' . esc_html( $args['help'] ) . '</p></div>';
+			echo '</ul><p><button type="submit" class="button" id="easyformly-setting-disposable_domains" form="easyformly-disposable-sync">' . esc_html__( 'Synchronize list', 'easyformly' ) . '</button></p><p class="description">' . esc_html( $args['help'] ) . '</p></div>';
 			return;
 		}
 		if ( 'level' === $type ) {
-			echo '<input type="hidden" name="' . esc_attr( Settings::OPTION . '[antispam_present]' ) . '" value="1"><select id="easycontact-setting-' . esc_attr( $key ) . '" name="' . esc_attr( $name ) . '">';
+			echo '<input type="hidden" name="' . esc_attr( Settings::OPTION . '[antispam_present]' ) . '" value="1"><select id="easyformly-setting-' . esc_attr( $key ) . '" name="' . esc_attr( $name ) . '">';
 			foreach ( array(
 				1 => __( '1 — Basic', 'easyformly' ),
 				2 => __( '2 — Balanced', 'easyformly' ),
@@ -140,15 +140,15 @@ final class Page {
 			return;
 		}
 		if ( 'country' === $type ) {
-			CountrySelect::render( $name, $settings[ $key ], 'easycontact-setting-' . $key, __( 'Automatic from the site language', 'easyformly' ) );
+			CountrySelect::render( $name, $settings[ $key ], 'easyformly-setting-' . $key, __( 'Automatic from the site language', 'easyformly' ) );
 			echo '<p class="description">' . esc_html( $args['help'] ) . '</p>';
 			return;
 		}
 		if ( 'textarea' === $type ) {
-			echo '<textarea class="large-text" rows="3" id="easycontact-setting-' . esc_attr( $key ) . '" name="' . esc_attr( $name ) . '">' . esc_textarea( $settings[ $key ] ) . '</textarea><p class="description">' . esc_html( $args['help'] ) . '</p>';
+			echo '<textarea class="large-text" rows="3" id="easyformly-setting-' . esc_attr( $key ) . '" name="' . esc_attr( $name ) . '">' . esc_textarea( $settings[ $key ] ) . '</textarea><p class="description">' . esc_html( $args['help'] ) . '</p>';
 			return;
 		}
-		echo '<input id="easycontact-setting-' . esc_attr( $key ) . '" type="' . esc_attr( $type ) . '" name="' . esc_attr( $name ) . '"';
+		echo '<input id="easyformly-setting-' . esc_attr( $key ) . '" type="' . esc_attr( $type ) . '" name="' . esc_attr( $name ) . '"';
 		if ( 'checkbox' === $type ) {
 			echo ' value="1" ' . checked( $settings[ $key ], true, false );
 		} else {
@@ -238,18 +238,18 @@ final class Page {
 		}
 		echo '<div class="wrap"><h1>EasyFormly · ' . esc_html__( 'Settings', 'easyformly' ) . '</h1>';
 		settings_errors();
-		$notice_key = 'easycontact_disposable_notice_' . get_current_user_id();
+		$notice_key = 'easyformly_disposable_notice_' . get_current_user_id();
 		$notice     = get_transient( $notice_key );
 		if ( is_array( $notice ) ) {
 			delete_transient( $notice_key );
 			echo '<div class="notice ' . ( $notice['error'] ? 'notice-error' : 'notice-success' ) . ' is-dismissible"><p>' . esc_html( $notice['message'] ) . '</p></div>';
 		}
 		echo '<form method="post" action="options.php">';
-		settings_fields( 'easycontact_settings_group' );
-		do_settings_sections( 'easycontact-settings' );
+		settings_fields( 'easyformly_settings_group' );
+		do_settings_sections( 'easyformly-settings' );
 		submit_button();
-		echo '</form><form id="easycontact-disposable-sync" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="easycontact_sync_disposable_domains">';
-		wp_nonce_field( 'easycontact_sync_disposable_domains' );
+		echo '</form><form id="easyformly-disposable-sync" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="easyformly_sync_disposable_domains">';
+		wp_nonce_field( 'easyformly_sync_disposable_domains' );
 		echo '</form></div>';
 	}
 
@@ -260,20 +260,20 @@ final class Page {
 		if ( ! current_user_can( 'manage_options' ) || 'POST' !== ( $_SERVER['REQUEST_METHOD'] ?? '' ) ) {
 			wp_die( esc_html__( 'Action not allowed.', 'easyformly' ), '', array( 'response' => 403 ) );
 		}
-		check_admin_referer( 'easycontact_sync_disposable_domains' );
+		check_admin_referer( 'easyformly_sync_disposable_domains' );
 		$result = DisposableDomains::sync();
 		$error  = is_wp_error( $result );
 		/* translators: %s: number of domains. */
 		$message = $error ? $result->get_error_message() : sprintf( __( 'Synchronization complete: %s domains in the local list.', 'easyformly' ), number_format_i18n( $result['count'] ) );
 		set_transient(
-			'easycontact_disposable_notice_' . get_current_user_id(),
+			'easyformly_disposable_notice_' . get_current_user_id(),
 			array(
 				'error'   => $error,
 				'message' => $message,
 			),
 			MINUTE_IN_SECONDS
 		);
-		wp_safe_redirect( admin_url( 'edit.php?post_type=' . Plugin::FORM . '&page=easycontact-settings#easycontact-disposable-domains' ) );
+		wp_safe_redirect( admin_url( 'edit.php?post_type=' . Plugin::FORM . '&page=easyformly-settings#easyformly-disposable-domains' ) );
 		exit;
 	}
 }

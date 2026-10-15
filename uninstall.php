@@ -15,30 +15,28 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
  * @return void Nothing.
  */
 function uninstall_site(): void {
-	foreach ( array( 'easycontact_daily_cleanup', 'easycontact_retention_cleanup', 'easycontact_state_cleanup', 'easycontact_retry_delivery', 'easycontact_resume_retries' ) as $hook ) {
-		wp_unschedule_hook( $hook );
-	}
-	delete_option( 'easycontact_version' );
-	delete_option( 'easycontact_maintenance' );
-	delete_option( 'easycontact_disposable_domains' );
+	wp_unschedule_hook( 'easyformly_retry_delivery' );
+	delete_option( 'easyformly_version' );
+	delete_option( 'easyformly_maintenance' );
+	delete_option( 'easyformly_disposable_domains' );
 	// Read names in the existing core options table; delete through the Options API.
 	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time uninstall enumeration of our own native options; removal uses core APIs and caching would serve stale names.
-	$names = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( 'easycontact_lock_' ) . '%', $wpdb->esc_like( 'easycontact_state_' ) . '%', $wpdb->esc_like( '_transient_easycontact_' ) . '%', $wpdb->esc_like( '_transient_timeout_easycontact_' ) . '%' ) );
+	$names = $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( 'easyformly_lock_' ) . '%', $wpdb->esc_like( 'easyformly_state_' ) . '%', $wpdb->esc_like( '_transient_easyformly_' ) . '%', $wpdb->esc_like( '_transient_timeout_easyformly_' ) . '%' ) );
 	foreach ( $names as $name ) {
-		if ( str_starts_with( $name, '_transient_timeout_easycontact_' ) ) {
+		if ( str_starts_with( $name, '_transient_timeout_easyformly_' ) ) {
 			delete_transient( substr( $name, strlen( '_transient_timeout_' ) ) );
-		} elseif ( str_starts_with( $name, '_transient_easycontact_' ) ) {
+		} elseif ( str_starts_with( $name, '_transient_easyformly_' ) ) {
 			delete_transient( substr( $name, strlen( '_transient_' ) ) );
 		} else {
 			delete_option( $name );
 		}
 	}
-	$settings = get_option( 'easycontact_settings', array() );
+	$settings = get_option( 'easyformly_settings', array() );
 	if ( empty( $settings['delete_on_uninstall'] ) ) {
 		return;
 	}
-	foreach ( array( 'easycontact_form', 'easycontact_entry' ) as $type ) {
+	foreach ( array( 'easyformly_form', 'easyformly_entry' ) as $type ) {
 		register_post_type(
 			$type,
 			array(
@@ -48,8 +46,8 @@ function uninstall_site(): void {
 		);
 	}
 	register_taxonomy(
-		'easycontact_safety',
-		'easycontact_entry',
+		'easyformly_safety',
+		'easyformly_entry',
 		array(
 			'public'  => false,
 			'rewrite' => false,
@@ -58,7 +56,7 @@ function uninstall_site(): void {
 	do {
 		$ids     = get_posts(
 			array(
-				'post_type'      => array( 'easycontact_form', 'easycontact_entry' ),
+				'post_type'      => array( 'easyformly_form', 'easyformly_entry' ),
 				'post_status'    => array( 'publish', 'private', 'draft', 'pending', 'future', 'auto-draft', 'trash' ),
 				'posts_per_page' => 100,
 				'fields'         => 'ids',
@@ -73,18 +71,18 @@ function uninstall_site(): void {
 	} while ( $ids && $removed );
 	$terms = get_terms(
 		array(
-			'taxonomy'   => 'easycontact_safety',
+			'taxonomy'   => 'easyformly_safety',
 			'hide_empty' => false,
 			'fields'     => 'ids',
 		)
 	);
 	if ( ! is_wp_error( $terms ) ) {
 		foreach ( $terms as $term ) {
-			wp_delete_term( $term, 'easycontact_safety' );
+			wp_delete_term( $term, 'easyformly_safety' );
 		}
 	}
-	delete_option( 'easycontact_review_terms_version' );
-	delete_option( 'easycontact_settings' );
+	delete_option( 'easyformly_review_terms_version' );
+	delete_option( 'easyformly_settings' );
 }
 
 /**

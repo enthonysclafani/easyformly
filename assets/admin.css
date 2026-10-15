@@ -1,52 +1,52 @@
-.easycontact-toolbar {
+.easyformly-toolbar {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.4rem;
 }
 
-.easycontact-rule-scroll {
+.easyformly-rule-scroll {
 	overflow-x: auto;
 }
 
-.easycontact-rules td {
+.easyformly-rules td {
 	vertical-align: middle;
 }
 
-.easycontact-rules select,
-.easycontact-rules input {
+.easyformly-rules select,
+.easyformly-rules input {
 	max-width: 100%;
 }
 
-.easycontact-rules input {
+.easyformly-rules input {
 	width: 10rem;
 }
 
-.easycontact-value {
+.easyformly-value {
 	white-space: pre-wrap;
 	overflow-wrap: anywhere;
 }
 
-.easycontact-support {
+.easyformly-support {
 	max-width: 960px;
 }
 
-.easycontact-support pre {
+.easyformly-support pre {
 	overflow-x: auto;
 	background: #f6f7f7;
 	padding: 0.75rem;
 }
 
-.easycontact-badge {
+.easyformly-badge {
 	display: inline-block;
 	padding: 0.2rem 0.5rem;
 	border-radius: 3px;
 	font-weight: 600;
 }
 
-.easycontact-badge-accepted { background: #e6f4ea; color: #185c2d; }
-.easycontact-badge-suspect { background: #fff2cc; color: #674b00; }
-.easycontact-badge-spam { background: #fce8e8; color: #8b1a1a; }
-.easycontact-badge-unknown { background: #f0f0f1; color: #50575e; }
+.easyformly-badge-accepted { background: #e6f4ea; color: #185c2d; }
+.easyformly-badge-suspect { background: #fff2cc; color: #674b00; }
+.easyformly-badge-spam { background: #fce8e8; color: #8b1a1a; }
+.easyformly-badge-unknown { background: #f0f0f1; color: #50575e; }
 
-#easycontact-review select { width: 100%; }
-#easycontact-review ul { list-style: disc; padding-inline-start: 1.2rem; }
+#easyformly-review select { width: 100%; }
+#easyformly-review ul { list-style: disc; padding-inline-start: 1.2rem; }

@@ -34,7 +34,7 @@ final class Admin {
 	 */
 	public static function menu(): void {
 		remove_submenu_page( 'edit.php?post_type=' . Plugin::FORM, 'post-new.php?post_type=' . Plugin::FORM );
-		add_submenu_page( 'edit.php?post_type=' . Plugin::FORM, __( 'Support', 'easyformly' ), __( 'Support', 'easyformly' ), 'manage_options', 'easycontact-support', array( self::class, 'support_page' ) );
+		add_submenu_page( 'edit.php?post_type=' . Plugin::FORM, __( 'Support', 'easyformly' ), __( 'Support', 'easyformly' ), 'manage_options', 'easyformly-support', array( self::class, 'support_page' ) );
 	}
 
 	/**
@@ -44,17 +44,17 @@ final class Admin {
 	 */
 	public static function assets(): void {
 		$screen = get_current_screen();
-		if ( ! $screen || ( ! in_array( $screen->post_type, array( Plugin::FORM, Plugin::ENTRY ), true ) && ! str_contains( $screen->id, 'easycontact-settings' ) && ! str_contains( $screen->id, 'easycontact-support' ) ) ) {
+		if ( ! $screen || ( ! in_array( $screen->post_type, array( Plugin::FORM, Plugin::ENTRY ), true ) && ! str_contains( $screen->id, 'easyformly-settings' ) && ! str_contains( $screen->id, 'easyformly-support' ) ) ) {
 			return;
 		}
-		wp_enqueue_style( 'easycontact-admin', plugins_url( 'assets/admin.css', EASYFORMLY_FILE ), array(), EASYFORMLY_VERSION );
-		if ( str_contains( $screen->id, 'easycontact-support' ) ) {
+		wp_enqueue_style( 'easyformly-admin', plugins_url( 'assets/admin.css', EASYFORMLY_FILE ), array(), EASYFORMLY_VERSION );
+		if ( str_contains( $screen->id, 'easyformly-support' ) ) {
 			return;
 		}
-		wp_enqueue_script( 'easycontact-admin', plugins_url( 'assets/admin.js', EASYFORMLY_FILE ), array(), EASYFORMLY_VERSION, true );
+		wp_enqueue_script( 'easyformly-admin', plugins_url( 'assets/admin.js', EASYFORMLY_FILE ), array(), EASYFORMLY_VERSION, true );
 		wp_localize_script(
-			'easycontact-admin',
-			'easycontactAdmin',
+			'easyformly-admin',
+			'easyformlyAdmin',
 			array(
 				'optionOne' => __( 'Option 1', 'easyformly' ),
 				'optionTwo' => __( 'Option 2', 'easyformly' ),
@@ -72,7 +72,7 @@ final class Admin {
 			return;
 		}
 		?>
-		<div class="wrap easycontact-support">
+		<div class="wrap easyformly-support">
 			<h1>EasyFormly · <?php esc_html_e( 'Support', 'easyformly' ); ?></h1>
 			<h2><?php esc_html_e( 'Syntax and examples', 'easyformly' ); ?></h2>
 			<p><?php esc_html_e( 'Separate fields on the same line with | to place them in equal-width columns. Start a new line for a new row. An asterisk makes the field required. Save the form to update the fields available in the rules.', 'easyformly' ); ?></p>

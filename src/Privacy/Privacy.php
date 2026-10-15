@@ -36,7 +36,7 @@ final class Privacy {
 	 * @return array<string, array<string, mixed>> Result of this operation.
 	 */
 	public static function exporters( array $items ): array {
-		$items['easycontact'] = array(
+		$items['easyformly'] = array(
 			'exporter_friendly_name' => 'EasyFormly',
 			'callback'               => array( self::class, 'export' ),
 		);
@@ -50,7 +50,7 @@ final class Privacy {
 	 * @return array<string, array<string, mixed>> Result of this operation.
 	 */
 	public static function erasers( array $items ): array {
-		$items['easycontact'] = array(
+		$items['easyformly'] = array(
 			'eraser_friendly_name' => 'EasyFormly',
 			'callback'             => array( self::class, 'erase' ),
 		);
@@ -75,7 +75,7 @@ final class Privacy {
 				'orderby'        => 'ID',
 				'order'          => 'ASC',
 				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Bounded native metadata matching for the WordPress personal data tools; no custom tables.
-				'meta_key'       => '_easycontact_email',
+				'meta_key'       => '_easyformly_email',
 				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Bounded native metadata matching for the WordPress personal data tools; no custom tables.
 				'meta_value'     => strtolower( $email ),
 			)
@@ -93,8 +93,8 @@ final class Privacy {
 		$posts = is_email( $email ) ? self::entries( $email, $page ) : array();
 		$data  = array();
 		foreach ( $posts as $post ) {
-			$values = (array) get_post_meta( $post->ID, '_easycontact_values', true );
-			$labels = (array) get_post_meta( $post->ID, '_easycontact_labels', true );
+			$values = (array) get_post_meta( $post->ID, '_easyformly_values', true );
+			$labels = (array) get_post_meta( $post->ID, '_easyformly_labels', true );
 			$fields = array(
 				array(
 					'name'  => __( 'Submission date', 'easyformly' ),
@@ -114,7 +114,7 @@ final class Privacy {
 					'value' => Review::labels()[ $category ],
 				);
 			}
-			$assessment = get_post_meta( $post->ID, '_easycontact_antispam', true );
+			$assessment = get_post_meta( $post->ID, '_easyformly_antispam', true );
 			if ( is_array( $assessment ) ) {
 				$fields[] = array(
 					'name'  => __( 'Anti-spam score', 'easyformly' ),
@@ -127,9 +127,9 @@ final class Privacy {
 				);
 			}
 			$data[] = array(
-				'group_id'    => 'easycontact',
+				'group_id'    => 'easyformly',
 				'group_label' => __( 'Form submissions', 'easyformly' ),
-				'item_id'     => 'easycontact-entry-' . $post->ID,
+				'item_id'     => 'easyformly-entry-' . $post->ID,
 				'data'        => $fields,
 			);
 		}

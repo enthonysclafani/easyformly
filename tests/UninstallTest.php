@@ -41,21 +41,6 @@ class UninstallTest extends TestCase {
 	}
 
 	/**
-	 * Deleting EasyContact 1.0.0 after the switch to EasyFormly keeps the data both use, even with the opt-in (D10).
-	 */
-	public function test_deleting_easycontact_keeps_the_data_of_easyformly(): void {
-		$site = $this->seed( true );
-
-		do_action( 'pre_uninstall_plugin', Plugin::LEGACY_PLUGIN, array() );
-		$this->uninstall();
-		remove_filter( 'option_' . Settings::OPTION, array( Plugin::class, 'keep_data' ) );
-
-		$this->assertNotNull( get_post( $site['form'] ), 'Forms are kept' );
-		$this->assertNotNull( get_post( $site['entry'] ), 'Entries are kept' );
-		$this->assertTrue( Settings::get()['delete_on_uninstall'], 'The opt-in still applies to EasyFormly' );
-	}
-
-	/**
 	 * WordPress runs uninstall.php once: it must clean every site of the network.
 	 *
 	 * @group multisite
@@ -96,8 +81,8 @@ class UninstallTest extends TestCase {
 		State::write( 'uninstall-fixture', array( 'entry' => $entry ), time() + HOUR_IN_SECONDS );
 		State::claim( 'uninstall-fixture' );
 		Maintenance::resume_retries();
-		set_transient( 'easycontact_uninstall_fixture', 1, HOUR_IN_SECONDS );
-		wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'easycontact_retry_delivery', array( $entry ) );
+		set_transient( 'easyformly_uninstall_fixture', 1, HOUR_IN_SECONDS );
+		wp_schedule_single_event( time() + HOUR_IN_SECONDS, 'easyformly_retry_delivery', array( $entry ) );
 		return array(
 			'form'  => $form,
 			'entry' => $entry,
@@ -126,15 +111,13 @@ class UninstallTest extends TestCase {
 	private function options_left(): array {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Tests inspect the raw table on purpose.
-		return $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( 'easycontact_' ) . '%', $wpdb->esc_like( '_transient_easycontact_' ) . '%', $wpdb->esc_like( '_transient_timeout_easycontact_' ) . '%' ) );
+		return $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s", $wpdb->esc_like( 'easyformly_' ) . '%', $wpdb->esc_like( '_transient_easyformly_' ) . '%', $wpdb->esc_like( '_transient_timeout_easyformly_' ) . '%' ) );
 	}
 
 	private function assertTechnicalDataRemoved(): void {
-		$left = array_diff( $this->options_left(), array( Settings::OPTION, 'easycontact_review_terms_version' ) );
+		$left = array_diff( $this->options_left(), array( Settings::OPTION, 'easyformly_review_terms_version' ) );
 		$this->assertSame( array(), array_values( $left ), 'Locks, receipts, transients, version and list cache are removed' );
-		foreach ( array( 'easycontact_daily_cleanup', 'easycontact_retention_cleanup', 'easycontact_state_cleanup', 'easycontact_retry_delivery', 'easycontact_resume_retries' ) as $hook ) {
-			$this->assertFalse( $this->scheduled( $hook ), 'No scheduled event left: ' . $hook );
-		}
+		$this->assertFalse( $this->scheduled( 'easyformly_retry_delivery' ), 'No scheduled event left' );
 	}
 
 	/**

@@ -1,14 +1,14 @@
 /* Scoped rules only. body { color: red; } */
-.easycontact-toolbar,
-#easycontact-review select {
+.easyformly-toolbar,
+#easyformly-review select {
 	display: flex;
 }
 
 @media (max-width: 600px) {
-	.easycontact-toolbar { display: block; }
+	.easyformly-toolbar { display: block; }
 }
 
-@keyframes easycontact-spin {
+@keyframes easyformly-spin {
 	from { opacity: 0; }
 	50%, to { opacity: 1; }
 }

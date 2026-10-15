@@ -66,9 +66,9 @@ final class ArchitectureChecker {
 	 * @var list<string>
 	 */
 	private const CRON_ALLOWLIST = array(
-		// Removes the events of version 1.0.0 once after the update, and every event on deactivation.
+		// Removes the retry events on deactivation.
 		'src/Plugin.php',
-		// D1: `easycontact_retry_delivery`, the only event, for the bounded delivery retries.
+		// D1: `easyformly_retry_delivery`, the only event, for the bounded delivery retries.
 		'src/Submissions/Submission.php',
 		// Removes the events above.
 		'uninstall.php',
@@ -466,9 +466,9 @@ final class ArchitectureChecker {
 					continue;
 				}
 				foreach ( explode( ',', $prelude ) as $selector ) {
-					if ( ! preg_match( '/[.#]easycontact[\w-]*/', $selector ) ) {
+					if ( ! preg_match( '/[.#]easyformly[\w-]*/', $selector ) ) {
 						$line = substr_count( $css, "\n", 0, $block[1] + strlen( $block[0] ) - strlen( ltrim( $block[0] ) ) ) + 1;
-						$this->add( $relative, $line, 'one-stylesheet', 'Selector `' . trim( $selector ) . '` must be scoped to an .easycontact class or #easycontact ID.' );
+						$this->add( $relative, $line, 'one-stylesheet', 'Selector `' . trim( $selector ) . '` must be scoped to an .easyformly class or #easyformly ID.' );
 					}
 				}
 			}
